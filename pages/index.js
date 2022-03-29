@@ -2,6 +2,9 @@ import Head from "next/head";
 import { Form, Input, Button, Select, DatePicker, Space } from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
+import AnyChart from "anychart-react";
+import anychart from "anychart";
+import axios from "axios";
 
 export default function Home() {
   const { Option } = Select;
@@ -15,7 +18,20 @@ export default function Home() {
   }
   const onFinish = (values) => {
     console.log("Success:", values);
+    axios({
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      url: `${process.env.API_URL}dataset`,
+      data: values,
+    })
+      .then((res) => {
+        console.log("res", res);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
   };
+  //========= Chart=======
 
   return (
     <div>
@@ -29,7 +45,17 @@ export default function Home() {
         <Sidebar />
         <div className="main-content">
           <div className="white-box">
-            <Form name="horizontal_login" layout="inline" onFinish={onFinish}>
+            <Form
+              name="horizontal_login"
+              layout="inline"
+              initialValues={{
+                currencies: "GBP_JPY",
+                dataset: "train",
+                model: "CNN_NEW_TDC",
+                timeframe: "M240",
+              }}
+              onFinish={onFinish}
+            >
               <Form.Item label="Currencies" name="currencies">
                 <Select
                   showSearch
@@ -42,7 +68,7 @@ export default function Home() {
                       .toLowerCase()
                       .indexOf(input.toLowerCase()) >= 0
                   }
-                  style={{ width: "150px" }}
+                  style={{ width: "120px" }}
                 >
                   <Option value="GBP_JPY">GBP_JPY</Option>
                   <Option value="EUR_USD">EUR_USD</Option>
@@ -74,7 +100,7 @@ export default function Home() {
                 </Select>
               </Form.Item>
               <Form.Item label="Dataset" name="dataset">
-                <Select style={{ width: "150px" }}>
+                <Select style={{ width: "80px" }}>
                   <Option value="train">train</Option>
                   <Option value="test">test</Option>
                   <Option value="valid">valid</Option>
@@ -86,7 +112,7 @@ export default function Home() {
                 </Select>
               </Form.Item>
               <Form.Item label="Time Frames" name="timeframe">
-                <Select style={{ width: "150px" }}>
+                <Select style={{ width: "100px" }}>
                   <Option value="M15">M15</Option>
                   <Option value="M30">M30</Option>
                   <Option value="M60">M60</Option>
@@ -95,7 +121,7 @@ export default function Home() {
                 </Select>
               </Form.Item>
               <Form.Item label="Date" name="date">
-                <RangePicker showTime />
+                <RangePicker showTime style={{ width: "300px" }} />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit">
