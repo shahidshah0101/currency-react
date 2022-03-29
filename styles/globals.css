@@ -14,3 +14,33 @@ a {
 * {
   box-sizing: border-box;
 }
+.dashboard {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #efefef;
+}
+.side-nav {
+  position: fixed;
+  left: 0;
+  top: 0px;
+  height: 100vh;
+  background-color: #fff;
+  z-index: 99;
+  width: 240px;
+}
+.main-content {
+  padding: 15px 25px 15px 260px;
+  width: 100%;
+  overflow-x: hidden;
+}
+.ant-menu-inline {
+  height: 100vh;
+}
+.white-box {
+  padding: 15px;
+  margin-bottom: 15px;
+  border-radius: 4px;
+  background-color: #fff;
+}
