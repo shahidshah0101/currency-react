@@ -1,5 +1,6 @@
 import React from "react";
 import { Menu } from "antd";
+import Link from "next/link";
 import {
   AreaChartOutlined,
   DesktopOutlined,
@@ -11,13 +12,11 @@ function Sidebar() {
     <div className="side-nav">
       <Menu defaultSelectedKeys={["1"]} mode="inline" theme="dark">
         <Menu.Item key="1" icon={<AreaChartOutlined />}>
-          Intial Dataset
+          <Link href="/">Intial Dataset</Link>
         </Menu.Item>
+
         <Menu.Item key="2" icon={<DesktopOutlined />}>
-          Analysis
-        </Menu.Item>
-        <Menu.Item key="3" icon={<ContainerOutlined />}>
-          Result
+          <Link href="/strength"> Strength</Link>
         </Menu.Item>
       </Menu>
     </div>
