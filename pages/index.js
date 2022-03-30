@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Head from "next/head";
 import { Form, Button, Select, DatePicker, Spin } from "antd";
 import "antd/dist/antd.css";
@@ -10,7 +10,11 @@ import axios from "axios";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [isChart, setIsChart] = useState(false);
-
+  const [dateRange, setDateRange] = useState([]);
+  useEffect(() => {
+    // Update the document title using the browser API
+    // onFinish();
+  });
   const { Option } = Select;
   const { RangePicker } = DatePicker;
   function onChange(value) {
@@ -20,15 +24,27 @@ export default function Home() {
   function onSearch(val) {
     console.log("search:", val);
   }
+  function onChangeDate(value, dateString) {
+    console.log("Formatted Selected Time: ", dateString);
+    setDateRange(dateString);
+  }
+
   const onFinish = (values) => {
+    var dateFrom = "";
+    var dateTo = "";
+    if (dateRange.length > 0) {
+      console.log(dateRange[0]);
+      dateFrom = dateRange[0];
+      dateTo = dateRange[1];
+    }
     setLoading(true);
     const formData = {
       currency: values.currencies,
       dataset: values.dataset,
       model: values.model,
       timeframe: values.timeframe,
-      to: "",
-      from: "",
+      to: dateTo,
+      from: dateFrom,
     };
     //return false;
     axios({
@@ -43,7 +59,14 @@ export default function Home() {
         var result = res.data.data[currencyKey];
 
         // ============= Chart Configuration ==========
+        var offset = new Date().getTimezoneOffset();
+        anychart.format.outputTimezone(offset);
         var dataTable = anychart.data.table();
+        var markers = [];
+        var simpleHammer = [];
+        var invertedHammer = [];
+        var chart = anychart.stock();
+        var plot = chart.plot(0);
         // ============= Chart Configuration ==========
 
         for (let i = 0; i < result.length - 1; i++) {
@@ -75,8 +98,35 @@ export default function Home() {
             data["STOCH_SLOWK"],
           ];
           //  console.log("candledata", candleData);
+
           dataTable.addData([candleData]);
+          if (data["HAMMER"] == "100") {
+            const hammerData = {
+              date: data["datetime"],
+              description: "HAMMER " + data["datetime"],
+            };
+            simpleHammer.push(hammerData);
+          } else if (data["INVERTED_HAMMER"] == "100") {
+            const hammerData = {
+              date: data["datetime"],
+              description: "INVERTED_HAMMER " + data["datetime"],
+            };
+            invertedHammer.push(hammerData);
+          }
         }
+        console.log(simpleHammer);
+        plot.eventMarkers({
+          groups: [
+            {
+              format: "H",
+              data: simpleHammer,
+            },
+            {
+              format: "I",
+              data: invertedHammer,
+            },
+          ],
+        });
         var mapping = dataTable.mapAs();
         mapping.addField("ADX", 1, "ADX");
         mapping.addField("ADX_LABEL", 2, "ADX_LABEL");
@@ -101,15 +151,91 @@ export default function Home() {
         mapping.addField("RSI_LABEL", 21, "RSI_LABEL");
         mapping.addField("STOCH_SLOWD", 22, "STOCH_SLOWD");
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
-        var chart = anychart.stock();
-        var plot = chart.plot(0);
+
         plot.candlestick(mapping).name("Candles");
         plot.yGrid(true).xGrid(true).yMinorGrid(true).xMinorGrid(true);
-        //chart.container("container");
-        //if (!chart.container()) chart.container("container");
-        // chart.draw();
+        plot
+          .line(dataTable.mapAs({ value: 4 }))
+          .stroke("3 #0ce3ac")
+          .name("BBANDS_LOWER");
+        plot
+          .line(dataTable.mapAs({ value: 5 }))
+          .stroke("3 #ffb00b")
+          .name("BBANDS_MIDDLE");
+        plot
+          .line(dataTable.mapAs({ value: 6 }))
+          .stroke("3 #ff4200")
+          .name("BBANDS_UPPER");
+        chart.splitters().normal().stroke({
+          color: "red",
+          dash: "3 4",
+          thickness: 2,
+          opacity: 0.9,
+        });
+        chart.splitters().hovered().stroke({
+          color: "blue",
+          dash: "3 4",
+          thickness: 2,
+          opacity: 0.9,
+        });
+        chart.splitters().preview().fill({
+          color: "green",
+          opacity: 0.5,
+        });
 
-        plot.area(mapping).name("Candles");
+        // create line series with mapping
+        var adxplot = dataTable.mapAs({ value: 1 });
+        var adxline = chart.plot(1).line(adxplot);
+        adxline.name("ADX");
+        adxline.stroke("#1ed760 0.9");
+
+        var atrplot = dataTable.mapAs({ value: 3 });
+        var atrline = chart.plot(1).line(atrplot);
+        atrline.name("ATR");
+        atrline.stroke("#013179 0.9");
+
+        var rsi = dataTable.mapAs({ value: 20 });
+        var rsiline = chart.plot(1).line(rsi);
+        rsiline.name("RSI");
+        rsiline.stroke("#ad6bd3 0.9");
+
+        var maFast = dataTable.mapAs({ value: 15 });
+        var maFastline = chart.plot(1).line(maFast);
+        maFastline.name("MA_FAST");
+        maFastline.stroke("#33ccee 0.9");
+
+        var maSlow = dataTable.mapAs({ value: 16 });
+        var maSlowline = chart.plot(1).line(maSlow);
+        maSlowline.name("MA_SLOW");
+        maSlowline.stroke("#523a28 0.9");
+
+        var minusDIPLot = dataTable.mapAs({ value: 17 });
+        var minusDIline = chart.plot(1).line(minusDIPLot);
+        minusDIline.name("MINUS_DI");
+        minusDIline.stroke("#ffd97c 0.9");
+
+        var plusDIPLot = dataTable.mapAs({ value: 19 });
+        var plusDIline = chart.plot(1).line(plusDIPLot);
+        plusDIline.name("PLUS_DI");
+        plusDIline.stroke("#bdc29b 0.9");
+
+        var stochplot = dataTable.mapAs({ value: 22 });
+        var stochplotline = chart.plot(1).line(stochplot);
+        stochplotline.name("STOCH_SLOWD");
+        stochplotline.stroke("#3d5954 0.9");
+
+        var stochslowkplot = dataTable.mapAs({ value: 23 });
+        var stochslowline = chart.plot(1).line(stochslowkplot);
+        stochslowline.name("STOCH_SLOWK");
+        stochslowline.stroke("#fcafac 0.9");
+        const myNode = document.getElementById("container");
+        myNode.innerHTML = "";
+        //chart.container("container");
+        if (!chart.container()) chart.container("container");
+
+        chart.draw();
+
+        // plot.area(mapping).name("Candles");
         setIsChart(true);
         var rangePicker = anychart.ui.rangePicker();
         rangePicker.render(chart);
@@ -130,6 +256,10 @@ export default function Home() {
         <title>Luccrostrength</title>
         <meta name="Luccrostrength" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
+        <link
+          rel="stylesheet"
+          href="https://cdn.anychart.com/releases/8.3.0/css/anychart-ui.min.css"
+        />
       </Head>
 
       <main className="dashboard">
@@ -212,7 +342,11 @@ export default function Home() {
                 </Select>
               </Form.Item>
               <Form.Item label="Date" name="date">
-                <RangePicker showTime style={{ width: "300px" }} />
+                <RangePicker
+                  showTime
+                  onChange={onChangeDate}
+                  style={{ width: "300px" }}
+                />
               </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit">
@@ -224,19 +358,8 @@ export default function Home() {
           <Spin tip="Loading..." spinning={loading}>
             <div className="white-box">
               <h2>Chart</h2>
-              {isChart === true && (
-                <div>
-                  <AnyChart
-                    width={1500}
-                    height={600}
-                    instance={chart}
-                    margin={0}
-                    padding={0}
-                    title="stock"
-                  />
-                  show
-                </div>
-              )}
+
+              <div id="container" className="chart-container"></div>
             </div>
           </Spin>
         </div>
