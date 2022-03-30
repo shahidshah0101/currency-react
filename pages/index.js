@@ -1,5 +1,6 @@
+import React, { useState } from "react";
 import Head from "next/head";
-import { Form, Input, Button, Select, DatePicker, Space } from "antd";
+import { Form, Button, Select, DatePicker, Spin } from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
 import AnyChart from "anychart-react";
@@ -7,6 +8,9 @@ import anychart from "anychart";
 import axios from "axios";
 
 export default function Home() {
+  const [loading, setLoading] = useState(false);
+  const [isChart, setIsChart] = useState(false);
+
   const { Option } = Select;
   const { RangePicker } = DatePicker;
   function onChange(value) {
@@ -17,18 +21,105 @@ export default function Home() {
     console.log("search:", val);
   }
   const onFinish = (values) => {
-    console.log("Success:", values);
+    setLoading(true);
+    const formData = {
+      currency: values.currencies,
+      dataset: values.dataset,
+      model: values.model,
+      timeframe: values.timeframe,
+      to: "",
+      from: "",
+    };
+    //return false;
     axios({
       method: "post",
       headers: { "Content-Type": "application/json" },
       url: `${process.env.API_URL}dataset`,
-      data: values,
+      data: formData,
     })
       .then((res) => {
-        console.log("res", res);
+        const currencyKeyArray = Object.keys(res.data.data);
+        const currencyKey = currencyKeyArray[0];
+        var result = res.data.data[currencyKey];
+
+        // ============= Chart Configuration ==========
+        var dataTable = anychart.data.table();
+        // ============= Chart Configuration ==========
+
+        for (let i = 0; i < result.length - 1; i++) {
+          let data = result[i];
+          var candleData = [
+            data["datetime"],
+            data["ADX"],
+            data["ADX_LABEL"],
+            data["ATR"],
+            data["BBANDS_LOWER"],
+            data["BBANDS_MIDDLE"],
+            data["BBANDS_UPPER"],
+            data["CANDLE_LABEL"],
+            data["CLOSE"],
+            data["COUNT"],
+            data["HAMMER"],
+            data["HIGH"],
+            data["INVERTED_HAMMER"],
+            data["LABEL"],
+            data["LOW"],
+            data["MA_FAST"],
+            data["MA_SLOW"],
+            data["MINUS_DI"],
+            data["OPEN"],
+            data["PLUS_DI"],
+            data["RSI"],
+            data["RSI_LABEL"],
+            data["STOCH_SLOWD"],
+            data["STOCH_SLOWK"],
+          ];
+          //  console.log("candledata", candleData);
+          dataTable.addData([candleData]);
+        }
+        var mapping = dataTable.mapAs();
+        mapping.addField("ADX", 1, "ADX");
+        mapping.addField("ADX_LABEL", 2, "ADX_LABEL");
+        mapping.addField("ATR", 3, "ATR");
+        mapping.addField("BBANDS_LOWER", 4, "BBANDS_LOWER");
+        mapping.addField("BBANDS_MIDDLE", 5, "BBANDS_MIDDLE");
+        mapping.addField("BBANDS_UPPER", 6, "BBANDS_UPPER");
+        mapping.addField("CANDLE_LABEL", 7, "CANDLE_LABEL");
+        mapping.addField("close", 8, "close");
+        mapping.addField("COUNT", 9, "COUNT");
+        mapping.addField("HAMMER", 10, "HAMMER");
+        mapping.addField("high", 11, "high");
+        mapping.addField("INVERTED_HAMMER", 12, "INVERTED_HAMMER");
+        mapping.addField("LABEL", 13, "LABEL");
+        mapping.addField("low", 14, "low");
+        mapping.addField("MA_FAST", 15, "MA_FAST");
+        mapping.addField("MA_SLOW", 16, "MA_SLOW");
+        mapping.addField("MINUS_DI", 17, "MINUS_DI");
+        mapping.addField("open", 18, "open");
+        mapping.addField("PLUS_DI", 19, "PLUS_DI");
+        mapping.addField("RSI", 20, "RSI");
+        mapping.addField("RSI_LABEL", 21, "RSI_LABEL");
+        mapping.addField("STOCH_SLOWD", 22, "STOCH_SLOWD");
+        mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
+        var chart = anychart.stock();
+        var plot = chart.plot(0);
+        plot.candlestick(mapping).name("Candles");
+        plot.yGrid(true).xGrid(true).yMinorGrid(true).xMinorGrid(true);
+        //chart.container("container");
+        //if (!chart.container()) chart.container("container");
+        // chart.draw();
+
+        plot.area(mapping).name("Candles");
+        setIsChart(true);
+        var rangePicker = anychart.ui.rangePicker();
+        rangePicker.render(chart);
+        var rangeSelector = anychart.ui.rangeSelector();
+        rangeSelector.render(chart);
+        setLoading(false);
       })
       .catch(function (error) {
         console.log(error);
+        setLoading(false);
       });
   };
   //========= Chart=======
@@ -130,9 +221,24 @@ export default function Home() {
               </Form.Item>
             </Form>
           </div>
-          <div className="white-box">
-            <h2>Chart</h2>
-          </div>
+          <Spin tip="Loading..." spinning={loading}>
+            <div className="white-box">
+              <h2>Chart</h2>
+              {isChart === true && (
+                <div>
+                  <AnyChart
+                    width={1500}
+                    height={600}
+                    instance={chart}
+                    margin={0}
+                    padding={0}
+                    title="stock"
+                  />
+                  show
+                </div>
+              )}
+            </div>
+          </Spin>
         </div>
       </main>
     </div>
