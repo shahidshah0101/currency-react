@@ -3,18 +3,13 @@ import Head from "next/head";
 import { Form, Button, Select, DatePicker, Spin } from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
-import AnyChart from "anychart-react";
 import anychart from "anychart";
 import axios from "axios";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
-  const [isChart, setIsChart] = useState(false);
   const [dateRange, setDateRange] = useState([]);
-  useEffect(() => {
-    // Update the document title using the browser API
-    // onFinish();
-  });
+
   const { Option } = Select;
   const { RangePicker } = DatePicker;
   function onChange(value) {
@@ -166,6 +161,15 @@ export default function Home() {
           .line(dataTable.mapAs({ value: 6 }))
           .stroke("3 #ff4200")
           .name("BBANDS_UPPER");
+
+        plot
+          .line(dataTable.mapAs({ value: 15 }))
+          .stroke("3 #33ccee")
+          .name("MA_FAST");
+        plot
+          .line(dataTable.mapAs({ value: 16 }))
+          .stroke("3 #523a28")
+          .name("MA_SLOW");
         chart.splitters().normal().stroke({
           color: "red",
           dash: "3 4",
@@ -198,16 +202,6 @@ export default function Home() {
         var rsiline = chart.plot(1).line(rsi);
         rsiline.name("RSI");
         rsiline.stroke("#ad6bd3 0.9");
-
-        var maFast = dataTable.mapAs({ value: 15 });
-        var maFastline = chart.plot(1).line(maFast);
-        maFastline.name("MA_FAST");
-        maFastline.stroke("#33ccee 0.9");
-
-        var maSlow = dataTable.mapAs({ value: 16 });
-        var maSlowline = chart.plot(1).line(maSlow);
-        maSlowline.name("MA_SLOW");
-        maSlowline.stroke("#523a28 0.9");
 
         var minusDIPLot = dataTable.mapAs({ value: 17 });
         var minusDIline = chart.plot(1).line(minusDIPLot);
@@ -248,8 +242,6 @@ export default function Home() {
         setLoading(false);
       });
   };
-  //========= Chart=======
-
   return (
     <div>
       <Head>

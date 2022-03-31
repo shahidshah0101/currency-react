@@ -10,7 +10,7 @@ import {
 function Sidebar() {
   return (
     <div className="side-nav">
-      <Menu defaultSelectedKeys={["1"]} mode="inline" theme="dark">
+      <Menu mode="inline" theme="dark">
         <Menu.Item key="1" icon={<AreaChartOutlined />}>
           <Link href="/">Intial Dataset</Link>
         </Menu.Item>
