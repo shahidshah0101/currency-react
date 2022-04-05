@@ -101,12 +101,36 @@ export default function Home() {
               description: "HAMMER " + data["datetime"],
             };
             simpleHammer.push(hammerData);
+            var anchor = {
+              xAnchor: data["datetime"],
+              valueAnchor: data["OPEN"],
+              enabled: true,
+              type: "marker",
+              //  markerType: "arrowdown",
+              offsetY: 30,
+              size: 15,
+              normal: { fill: "red", stroke: "red" },
+            };
+
+            //markers.push(anchor);
           } else if (data["INVERTED_HAMMER"] == "100") {
             const hammerData = {
               date: data["datetime"],
               description: "INVERTED_HAMMER " + data["datetime"],
             };
             invertedHammer.push(hammerData);
+            var ancho = {
+              xAnchor: data["datetime"],
+              valueAnchor: data["OPEN"],
+              enabled: true,
+              type: "marker",
+              markerType: "arrowdown",
+              size: 15,
+              offsetY: -30,
+              normal: { fill: "#0ce3ac", stroke: "#0ce3ac" },
+            };
+
+            //markers.push(ancho);
           }
         }
         console.log(simpleHammer);
@@ -148,6 +172,8 @@ export default function Home() {
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
 
         plot.candlestick(mapping).name("Candles");
+
+        plot.annotations(markers);
         plot.yGrid(true).xGrid(true).yMinorGrid(true).xMinorGrid(true);
         plot
           .line(dataTable.mapAs({ value: 4 }))
