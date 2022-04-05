@@ -129,6 +129,7 @@ export default function Strength() {
     firstSeriesM30.stroke("1 #ef6c00");
     firstSeriesM30.hovered().markers().enabled(true).type("circle").size(4);
     firstSeriesM30.tooltip().position("right").anchor("left-center");
+    firstSeriesM30.stepDirection("forward");
 
     // create second series with mapped data
 
