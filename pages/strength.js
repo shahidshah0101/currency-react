@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Form, Button, Select, DatePicker, Spin, Row, Col } from "antd";
+import {
+  Form,
+  Button,
+  Select,
+  DatePicker,
+  Spin,
+  Row,
+  Col,
+  Checkbox,
+} from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
 import anychart from "anychart";
@@ -101,6 +110,53 @@ export default function Strength() {
       ["2021-04-01 04:15:00", 0.2],
       ["2021-04-01 04:30:00", 22.5],
       ["2021-04-01 04:45:00", 22.5],
+      ["2021-04-01 05:00:00", 49.5],
+    ]);
+    var dataSetM60 = anychart.data.set([
+      ["2021-04-01 00:00:00", 17.1],
+      ["2021-04-01 00:15:00", 17.1],
+      ["2021-04-01 00:30:00", 17.1],
+      ["2021-04-01 00:45:00", 17.1],
+      ["2021-04-01 01:00:00", 40.1],
+      ["2021-04-01 01:15:00", 40.1],
+      ["2021-04-01 01:30:00", 40.1],
+      ["2021-04-01 01:45:00", 40.1],
+      ["2021-04-01 02:00:00", -1.9],
+      ["2021-04-01 02:15:00", -1.9],
+      ["2021-04-01 02:30:00", -1.9],
+      ["2021-04-01 02:45:00", -1.9],
+      ["2021-04-01 03:00:00", -19.9],
+      ["2021-04-01 03:15:00", -19.9],
+      ["2021-04-01 03:30:00", -19.9],
+      ["2021-04-01 03:45:00", -19.9],
+      ["2021-04-01 04:00:00", 0.2],
+      ["2021-04-01 04:15:00", 0.2],
+      ["2021-04-01 04:30:00", 0.2],
+      ["2021-04-01 04:45:00", 0.2],
+      ["2021-04-01 05:00:00", 49.5],
+    ]);
+
+    var dataSetM240 = anychart.data.set([
+      ["2021-04-01 00:00:00", 17.1],
+      ["2021-04-01 00:15:00", 17.1],
+      ["2021-04-01 00:30:00", 17.1],
+      ["2021-04-01 00:45:00", 17.1],
+      ["2021-04-01 01:00:00", 40.1],
+      ["2021-04-01 01:15:00", 40.1],
+      ["2021-04-01 01:30:00", 40.1],
+      ["2021-04-01 01:45:00", 40.1],
+      ["2021-04-01 02:00:00", -1.9],
+      ["2021-04-01 02:15:00", -1.9],
+      ["2021-04-01 02:30:00", -1.9],
+      ["2021-04-01 02:45:00", -1.9],
+      ["2021-04-01 03:00:00", -19.9],
+      ["2021-04-01 03:15:00", -19.9],
+      ["2021-04-01 03:30:00", -19.9],
+      ["2021-04-01 03:45:00", -19.9],
+      ["2021-04-01 04:00:00", 0.2],
+      ["2021-04-01 04:15:00", 0.2],
+      ["2021-04-01 04:30:00", 0.2],
+      ["2021-04-01 04:45:00", 0.2],
       ["2021-04-01 05:00:00", 49.5],
     ]);
 
@@ -312,18 +368,60 @@ export default function Strength() {
           </div>
           <Spin tip="Loading..." spinning={loading}>
             <Row gutter={16}>
-              <Col className="gutter-row" span={12}>
+              <Col span={24}>
                 <div className="white-box">
-                  <h2>Analog</h2>
+                  <div className="filters">
+                    <h2>Analog</h2>
+                    <div className="currency-checkboxes">
+                      <b>Currency: &nbsp;&nbsp;</b>
+                      <Checkbox>EUR</Checkbox>
+                      <Checkbox>GBP</Checkbox>
+                      <Checkbox>JPY</Checkbox>
+                      <Checkbox>USD</Checkbox>
+                      <Checkbox>CHF</Checkbox>
+                      <Checkbox>CAD</Checkbox>
+                      <Checkbox>AUD</Checkbox>
+                      <Checkbox>NZD</Checkbox>
+                    </div>
+                    <div className="currency-checkboxes">
+                      <b>Timeframe: &nbsp;&nbsp;</b>
+                      <Checkbox>M15</Checkbox>
+                      <Checkbox>M30</Checkbox>
+                      <Checkbox>M60</Checkbox>
+                      <Checkbox>M240</Checkbox>
+                    </div>
+                  </div>
+
                   <div id="analogContainer" className="half-container"></div>
                 </div>
               </Col>
-              {/*  <Col className="gutter-row" span={12}>
+              <Col span={24}>
                 <div className="white-box">
-                  <h2>Digital</h2>
-                  <div id="digitalContainer" className="half-container"></div>
+                  <div className="filters">
+                    <h2>Digital</h2>
+                    <div className="currency-checkboxes">
+                      <b>Currency: &nbsp;&nbsp;</b>
+                      <Checkbox>EUR</Checkbox>
+                      <Checkbox>GBP</Checkbox>
+                      <Checkbox>JPY</Checkbox>
+                      <Checkbox>USD</Checkbox>
+                      <Checkbox>CHF</Checkbox>
+                      <Checkbox>CAD</Checkbox>
+                      <Checkbox>AUD</Checkbox>
+                      <Checkbox>NZD</Checkbox>
+                    </div>
+                    <div className="currency-checkboxes">
+                      <b>Timeframe: &nbsp;&nbsp;</b>
+                      <Checkbox>M15</Checkbox>
+                      <Checkbox>M30</Checkbox>
+                      <Checkbox>M60</Checkbox>
+                      <Checkbox>M240</Checkbox>
+                    </div>
+                  </div>
+
+                  <div id="analogContainer" className="half-container"></div>
                 </div>
-              </Col>*/}
+              </Col>
             </Row>
           </Spin>
         </div>
