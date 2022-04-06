@@ -12,7 +12,7 @@ function Sidebar() {
     <div className="side-nav">
       <Menu mode="inline" theme="dark">
         <Menu.Item key="1" icon={<AreaChartOutlined />}>
-          <Link href="/">Intial Dataset</Link>
+          <Link href="/">Indicators</Link>
         </Menu.Item>
 
         <Menu.Item key="2" icon={<DesktopOutlined />}>

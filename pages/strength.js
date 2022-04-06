@@ -3,12 +3,12 @@ import Head from "next/head";
 import {
   Form,
   Button,
-  Select,
   DatePicker,
   Spin,
   Row,
   Col,
   Checkbox,
+  Input,
 } from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
@@ -18,41 +18,26 @@ import axios from "axios";
 export default function Strength() {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState([]);
-  const [chartsData, setChartsData] = useState([
-    ["2021-04-01 00:00:00", 4, -18, -102, -22, 12, 83, -2, 45],
-    ["2021-04-01 00:15:00", 30, 61, -39, -35, 1, -12, 32, -38],
-    ["2021-04-01 00:30:00", -26, -104, -33, -37, 42, 197, -79, 40],
-    ["2021-04-01 00:45:00", -12, -11, 79, -36, -8, 26, -21, -17],
-    ["2021-04-01 01:00:00", 48, 77, 7, 2, -22, -91, -2, -19],
-    ["2021-04-01 01:15:00", -49, 25, 53, 3, -9, 55, -39, -39],
-    ["2021-04-01 01:30:00", 42, 80, 47, -13, 4, 5, -75, -90],
-    ["2021-04-01 01:45:00", -42, 29, 62, 43, -62, 45, -71, -4],
-    ["2021-04-01 02:00:00", -42, 29, 62, 43, -62, 45, -71, -4],
-    ["2021-04-01 02:15:00", 89, 78, -28, -93, 136, -37, -35, -110],
-    ["2021-04-01 02:30:00", 20, 62, -57, 78, -69, 17, 4, -55],
-    ["2021-04-01 02:45:00", -62, 42, 66, 42, -51, -64, 11, 16],
-    ["2021-04-01 03:00:00", 4, 21, 16, 34, -4, -30, -35, -6],
-    ["2021-04-01 03:15:00", -18, -16, -26, 7, 14, 35, 40, -36],
-    ["2021-04-01 03:30:00", -26, 11, 9, 92, -27, 3, -51, -11],
-    ["2021-04-01 03:45:00", 20, -102, 20, -43, -15, 98, 53, -31],
-    ["2021-04-01 04:00:00", -12, -97, -19, -103, 29, 113, 51, 38],
-    ["2021-04-01 04:15:00", -18, 47, 25, 28, 37, 40, -111, -48],
-    ["2021-04-01 04:30:00", 41, 30, -17, -18, -24, 34, 12, -58],
-    ["2021-04-01 04:45:00", 16, -17, -30, -43, 4, 34, 26, 10],
-    ["2021-04-01 05:00:00", -15, -26, 8, 25, 25, -6, 8, -19],
-  ]);
 
-  const { Option } = Select;
   const { RangePicker } = DatePicker;
+
+  const currencyOptions = [
+    "EUR",
+    "GBP",
+    "JPY",
+    "USD",
+    "CHF",
+    "CAD",
+    "AUD",
+    "NZD",
+  ];
+  const timeframeOptions = ["M15", "M30", "M60", "M240"];
 
   function onChangeDate(value, dateString) {
     setDateRange(dateString);
   }
-  function onChangeCurrency(e) {
-    console.log(e.target.value);
-  }
-
-  const onFinish = (values) => {
+  const applyFilters = (values) => {
+    console.log("values", values);
     var dateFrom = "";
     var dateTo = "";
     if (dateRange.length > 0) {
@@ -63,6 +48,8 @@ export default function Strength() {
     setLoading(true);
     const formData = {
       timeframe: values.timeframe,
+      currency: values.currency,
+      signal_type: values.signal_type,
       to: dateTo,
       from: dateFrom,
     };
@@ -74,14 +61,12 @@ export default function Strength() {
       data: formData,
     })
       .then((res) => {
-        var analogData = res.data.data["analog"];
-        var digitalData = res.data.data["digital"];
-        // ============= Chart Configuration ==========
-        var offset = new Date().getTimezoneOffset();
-        anychart.format.outputTimezone(offset);
-        analogChart(analogData);
-        // digitalChart(digitalData);
-        // ============= Chart Configuration ==========
+        console.log(res, "res");
+        if (values.signal_type == "analog") {
+          analogChart(res);
+        } else {
+          digitalChart(res);
+        }
 
         setLoading(false);
       })
@@ -90,41 +75,176 @@ export default function Strength() {
         setLoading(false);
       });
   };
+
   // =========== Analog Chart Start ==============
-  const analogChart = (analogData) => {
-    var dataSetM15 = anychart.data.set(chartsData);
-
-    var firstSeriesDataM15 = dataSetM15.mapAs({ x: 0, value: 1 });
-
+  const analogChart = (res) => {
+    var offset = new Date().getTimezoneOffset();
+    anychart.format.outputTimezone(offset);
+    const timeframeKey = Object.keys(res.data);
+    //console.log("timeframeKey", timeframeKey);
     var chart = anychart.line();
     chart.animation(true);
-    // turn on the crosshair
     chart.crosshair().enabled(true).yLabel(false).yStroke(null);
-    // set tooltip mode to point
     chart.tooltip().positionMode("point");
-
     chart.xAxis().labels().padding(0).rotation(90);
-
-    // create first series with mapped data
-
-    var firstSeriesM15 = chart.line(firstSeriesDataM15);
-    firstSeriesM15.name("M15(EUR)");
-    firstSeriesM15.hovered().markers().enabled(true).type("circle").size(4);
-    firstSeriesM15.tooltip().position("right").anchor("left-center");
-
-    // create second series with mapped data
-
-    // turn the legend on
     chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
 
-    // set container id for the chart
+    var arraycontainsM15 = timeframeKey.indexOf("M15") > -1;
+    var arraycontainsM30 = timeframeKey.indexOf("M30") > -1;
+    var arraycontainsM60 = timeframeKey.indexOf("M60") > -1;
+    var arraycontainsM240 = timeframeKey.indexOf("M240") > -1;
+
+    if (arraycontainsM15) {
+      var dataSetM15 = anychart.data.set(res.data["M15"].data["analog"]);
+      for (var i = 0; i < res.data["M15"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M15"].data["currencies"][i];
+        var firstSeriesDataM15 = dataSetM15.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM15 = chart.line(firstSeriesDataM15);
+        firstSeriesM15.name("M15-" + data);
+        firstSeriesM15.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM15.tooltip().position("right").anchor("left-center");
+      }
+    }
+    if (arraycontainsM30) {
+      var dataSetM30 = anychart.data.set(res.data["M30"].data["analog"]);
+      for (var i = 0; i < res.data["M30"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M30"].data["currencies"][i];
+        var firstSeriesDataM30 = dataSetM30.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM30 = chart.stepLine(firstSeriesDataM30);
+        firstSeriesM30.name("M30-" + data);
+        firstSeriesM30.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM30.tooltip().position("right").anchor("left-center");
+        firstSeriesM30.stepDirection("forward");
+      }
+    }
+    if (arraycontainsM60) {
+      var dataSetM60 = anychart.data.set(res.data["M60"].data["analog"]);
+      for (var i = 0; i < res.data["M60"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M60"].data["currencies"][i];
+        var firstSeriesDataM60 = dataSetM60.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM60 = chart.stepLine(firstSeriesDataM60);
+        firstSeriesM60.name("M60-" + data);
+        firstSeriesM60.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM60.tooltip().position("right").anchor("left-center");
+        firstSeriesM60.stepDirection("forward");
+      }
+    }
+    if (arraycontainsM240) {
+      var dataSetM240 = anychart.data.set(res.data["M240"].data["analog"]);
+      for (var i = 0; i < res.data["M240"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M240"].data["currencies"][i];
+        var firstSeriesDataM240 = dataSetM240.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM240 = chart.stepLine(firstSeriesDataM240);
+        firstSeriesM240.name("M240-" + data);
+        firstSeriesM240
+          .hovered()
+          .markers()
+          .enabled(true)
+          .type("circle")
+          .size(4);
+        firstSeriesM240.tooltip().position("right").anchor("left-center");
+        firstSeriesM240.stepDirection("forward");
+      }
+    }
+
     const myNode = document.getElementById("analogContainer");
     myNode.innerHTML = "";
     chart.container("analogContainer");
     // initiate chart drawing
     chart.draw();
+
+    // set container id for the chart
   };
   // =========== Analog Chart End ================
+
+  // =========== Digital Chart End ================
+  const digitalChart = (res) => {
+    var offset = new Date().getTimezoneOffset();
+    anychart.format.outputTimezone(offset);
+    const timeframeKey = Object.keys(res.data);
+    //console.log("timeframeKey", timeframeKey);
+    var chart = anychart.line();
+    chart.animation(true);
+    chart.crosshair().enabled(true).yLabel(false).yStroke(null);
+    chart.tooltip().positionMode("point");
+    chart.xAxis().labels().padding(0).rotation(90);
+    chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
+
+    var arraycontainsM15 = timeframeKey.indexOf("M15") > -1;
+    var arraycontainsM30 = timeframeKey.indexOf("M30") > -1;
+    var arraycontainsM60 = timeframeKey.indexOf("M60") > -1;
+    var arraycontainsM240 = timeframeKey.indexOf("M240") > -1;
+
+    if (arraycontainsM15) {
+      var dataSetM15 = anychart.data.set(res.data["M15"].data["digital"]);
+      for (var i = 0; i < res.data["M15"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M15"].data["currencies"][i];
+        var firstSeriesDataM15 = dataSetM15.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM15 = chart.line(firstSeriesDataM15);
+        firstSeriesM15.name("M15-" + data);
+        firstSeriesM15.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM15.tooltip().position("right").anchor("left-center");
+      }
+    }
+    if (arraycontainsM30) {
+      var dataSetM30 = anychart.data.set(res.data["M30"].data["digital"]);
+      for (var i = 0; i < res.data["M30"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M30"].data["currencies"][i];
+        var firstSeriesDataM30 = dataSetM30.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM30 = chart.stepLine(firstSeriesDataM30);
+        firstSeriesM30.name("M30-" + data);
+        firstSeriesM30.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM30.tooltip().position("right").anchor("left-center");
+        firstSeriesM30.stepDirection("forward");
+      }
+    }
+    if (arraycontainsM60) {
+      var dataSetM60 = anychart.data.set(res.data["M60"].data["digital"]);
+      for (var i = 0; i < res.data["M60"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M60"].data["currencies"][i];
+        var firstSeriesDataM60 = dataSetM60.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM60 = chart.stepLine(firstSeriesDataM60);
+        firstSeriesM60.name("M60-" + data);
+        firstSeriesM60.hovered().markers().enabled(true).type("circle").size(4);
+        firstSeriesM60.tooltip().position("right").anchor("left-center");
+        firstSeriesM60.stepDirection("forward");
+      }
+    }
+    if (arraycontainsM240) {
+      var dataSetM240 = anychart.data.set(res.data["M240"].data["digital"]);
+      for (var i = 0; i < res.data["M240"].data["currencies"].length; i++) {
+        console.log(i);
+        let data = res.data["M240"].data["currencies"][i];
+        var firstSeriesDataM240 = dataSetM240.mapAs({ x: 0, value: 1 + i });
+        var firstSeriesM240 = chart.stepLine(firstSeriesDataM240);
+        firstSeriesM240.name("M240-" + data);
+        firstSeriesM240
+          .hovered()
+          .markers()
+          .enabled(true)
+          .type("circle")
+          .size(4);
+        firstSeriesM240.tooltip().position("right").anchor("left-center");
+        firstSeriesM240.stepDirection("forward");
+      }
+    }
+
+    const myNode = document.getElementById("digitalContainer");
+    myNode.innerHTML = "";
+    chart.container("digitalContainer");
+    // initiate chart drawing
+    chart.draw();
+
+    // set container id for the chart
+  };
+  // =========== Digital Chart End ================
 
   return (
     <div>
@@ -141,78 +261,51 @@ export default function Strength() {
       <main className="dashboard">
         <Sidebar />
         <div className="main-content">
-          <div className="white-box">
-            <Form
-              name="horizontal_login"
-              layout="inline"
-              initialValues={{
-                timeframe: "M15",
-              }}
-              onFinish={onFinish}
-            >
-              <Form.Item label="Time Frames" name="timeframe">
-                <Select style={{ width: "100px" }}>
-                  <Option value="M15">M15</Option>
-                  <Option value="M30">M30</Option>
-                  <Option value="M60">M60</Option>
-                  <Option value="M240">M240</Option>
-                  <Option value="M1440">M1440</Option>
-                </Select>
-              </Form.Item>
-              <Form.Item label="Date" name="date">
-                <RangePicker
-                  showTime
-                  onChange={onChangeDate}
-                  style={{ width: "300px" }}
-                />
-              </Form.Item>
-              <Form.Item>
-                <Button type="primary" htmlType="submit">
-                  Submit
-                </Button>
-              </Form.Item>
-            </Form>
-          </div>
           <Spin tip="Loading..." spinning={loading}>
             <Row gutter={16}>
               <Col span={24}>
                 <div className="white-box">
                   <div className="filters">
-                    <h2>Analog</h2>
-                    <div className="currency-checkboxes">
-                      <b>Currency: &nbsp;&nbsp;</b>
-                      <Checkbox onChange={onChangeCurrency} value="EUR">
-                        EUR
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="GBP">
-                        GBP
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="JPY">
-                        JPY
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="USD">
-                        USD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="CHF">
-                        CHF
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="CAD">
-                        CAD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="AUD">
-                        AUD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="NZD">
-                        NZD
-                      </Checkbox>
-                    </div>
-                    <div className="currency-checkboxes">
-                      <b>Timeframe: &nbsp;&nbsp;</b>
-                      <Checkbox>M15</Checkbox>
-                      <Checkbox>M30</Checkbox>
-                      <Checkbox>M60</Checkbox>
-                      <Checkbox>M240</Checkbox>
-                    </div>
+                    <Form
+                      name="horizontal_fitlers"
+                      layout="inline"
+                      onFinish={applyFilters}
+                      initialValues={{
+                        signal_type: "analog",
+                      }}
+                    >
+                      <h2>Analog</h2>
+
+                      <div className="currency-checkboxes">
+                        <Form.Item label="Date Time" name="date">
+                          <RangePicker
+                            showTime
+                            onChange={onChangeDate}
+                            style={{ width: "300px" }}
+                          />
+                        </Form.Item>
+                        <b>Currency: &nbsp;&nbsp;</b>
+                        <Form.Item name="currency">
+                          <Checkbox.Group options={currencyOptions} />
+                        </Form.Item>
+                      </div>
+                      <div className="currency-checkboxes">
+                        <b>Timeframe: &nbsp;&nbsp;</b>
+                        <Form.Item name="timeframe">
+                          <Checkbox.Group options={timeframeOptions} />
+                        </Form.Item>
+                        <Form.Item
+                          name="signal_type"
+                          style={{ display: "none" }}
+                        >
+                          <Input type="text" />
+                        </Form.Item>
+                      </div>
+
+                      <Button type="primary" htmlType="submit">
+                        Apply Filters
+                      </Button>
+                    </Form>
                   </div>
 
                   <div id="analogContainer" className="half-container"></div>
@@ -221,44 +314,49 @@ export default function Strength() {
               <Col span={24}>
                 <div className="white-box">
                   <div className="filters">
-                    <h2>Digital</h2>
-                    <div className="currency-checkboxes">
-                      <b>Currency: &nbsp;&nbsp;</b>
-                      <Checkbox onChange={onChangeCurrency} value="EUR">
-                        EUR
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="GBP">
-                        GBP
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="JPY">
-                        JPY
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="USD">
-                        USD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="CHF">
-                        CHF
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="CAD">
-                        CAD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="AUD">
-                        AUD
-                      </Checkbox>
-                      <Checkbox onChange={onChangeCurrency} value="NZD">
-                        NZD
-                      </Checkbox>
-                    </div>
-                    <div className="currency-checkboxes">
-                      <b>Timeframe: &nbsp;&nbsp;</b>
-                      <Checkbox>M15</Checkbox>
-                      <Checkbox>M30</Checkbox>
-                      <Checkbox>M60</Checkbox>
-                      <Checkbox>M240</Checkbox>
-                    </div>
+                    <Form
+                      name="horizontal_fitlers"
+                      layout="inline"
+                      onFinish={applyFilters}
+                      initialValues={{
+                        signal_type: "digital",
+                      }}
+                    >
+                      <h2>Digital</h2>
+
+                      <div className="currency-checkboxes">
+                        <Form.Item label="Date Time" name="date">
+                          <RangePicker
+                            showTime
+                            onChange={onChangeDate}
+                            style={{ width: "300px" }}
+                          />
+                        </Form.Item>
+                        <b>Currency: &nbsp;&nbsp;</b>
+                        <Form.Item name="currency">
+                          <Checkbox.Group options={currencyOptions} />
+                        </Form.Item>
+                      </div>
+                      <div className="currency-checkboxes">
+                        <b>Timeframe: &nbsp;&nbsp;</b>
+                        <Form.Item name="timeframe">
+                          <Checkbox.Group options={timeframeOptions} />
+                        </Form.Item>
+                        <Form.Item
+                          name="signal_type"
+                          style={{ display: "none" }}
+                        >
+                          <Input type="text" />
+                        </Form.Item>
+                      </div>
+
+                      <Button type="primary" htmlType="submit">
+                        Apply Filters
+                      </Button>
+                    </Form>
                   </div>
 
-                  <div id="analogContainer" className="half-container"></div>
+                  <div id="digitalContainer" className="half-container"></div>
                 </div>
               </Col>
             </Row>

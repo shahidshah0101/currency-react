@@ -62,6 +62,7 @@ export default function Home() {
         var invertedHammer = [];
         var chart = anychart.stock();
         var plot = chart.plot(0);
+        var annotationPeaks = plot.annotations();
         // ============= Chart Configuration ==========
 
         for (let i = 0; i < result.length - 1; i++) {
@@ -91,10 +92,34 @@ export default function Home() {
             data["RSI_LABEL"],
             data["STOCH_SLOWD"],
             data["STOCH_SLOWK"],
+            data["PEAK"],
+            data["BOTTOM"],
           ];
           //  console.log("candledata", candleData);
 
           dataTable.addData([candleData]);
+
+          if (data["PEAK"] > 0) {
+            console.log("PEAK", data["PEAK"]);
+            annotationPeaks
+              .marker()
+              .xAnchor(data["datetime"])
+              .valueAnchor(data["HIGH"])
+              //.fill('green 0.5')
+              .stroke("2 green 0.75")
+              .markerType("arrow-down")
+              .allowEdit(false);
+          } else if (data["BOTTOM"] > 0) {
+            console.log("BOTTOM", data["BOTTOM"]);
+            annotationPeaks
+              .marker()
+              .xAnchor(data["datetime"])
+              .valueAnchor(data["LOW"])
+              //   .fill('red 0.5')
+              .stroke("2 red 0.75")
+              .allowEdit(false);
+          }
+
           if (data["HAMMER"] == "100") {
             const hammerData = {
               date: data["datetime"],
@@ -170,6 +195,8 @@ export default function Home() {
         mapping.addField("RSI_LABEL", 21, "RSI_LABEL");
         mapping.addField("STOCH_SLOWD", 22, "STOCH_SLOWD");
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
+        mapping.addField("PEAK", 24, "PEAK");
+        mapping.addField("BOTTOM", 25, "BOTTOM");
 
         plot.candlestick(mapping).name("Candles");
 
@@ -248,6 +275,17 @@ export default function Home() {
         var stochslowline = chart.plot(1).line(stochslowkplot);
         stochslowline.name("STOCH_SLOWK");
         stochslowline.stroke("#fcafac 0.9");
+
+        var peakplot = dataTable.mapAs({ value: 24 });
+        var peaklowline = chart.plot(1).line(peakplot);
+        peaklowline.name("PEAK");
+        peaklowline.stroke("#444 0.9");
+
+        var bottomplot = dataTable.mapAs({ value: 25 });
+        var bottomlowline = chart.plot(1).line(bottomplot);
+        bottomlowline.name("BOTTOM");
+        bottomlowline.stroke("#000 0.9");
+
         const myNode = document.getElementById("container");
         myNode.innerHTML = "";
         //chart.container("container");
@@ -256,7 +294,7 @@ export default function Home() {
         chart.draw();
 
         // plot.area(mapping).name("Candles");
-        setIsChart(true);
+
         var rangePicker = anychart.ui.rangePicker();
         rangePicker.render(chart);
         var rangeSelector = anychart.ui.rangeSelector();
