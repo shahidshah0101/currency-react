@@ -326,7 +326,7 @@ export default function Home() {
               name="horizontal_login"
               layout="inline"
               initialValues={{
-                currencies: "GBP_JPY",
+                currencies: "EUR_USD",
                 dataset: "train",
                 model: "CNN_NEW_TDC",
                 timeframe: "M240",

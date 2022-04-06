@@ -61,7 +61,7 @@ export default function Strength() {
       data: formData,
     })
       .then((res) => {
-        console.log(res, "res");
+        // console.log(res, "res");
         if (values.signal_type == "analog") {
           analogChart(res);
         } else {
@@ -83,6 +83,10 @@ export default function Strength() {
     const timeframeKey = Object.keys(res.data);
     //console.log("timeframeKey", timeframeKey);
     var chart = anychart.line();
+
+    var scroller = chart.xScroller();
+    scroller.enabled(true);
+
     chart.animation(true);
     chart.crosshair().enabled(true).yLabel(false).yStroke(null);
     chart.tooltip().positionMode("point");
@@ -168,6 +172,8 @@ export default function Strength() {
     const timeframeKey = Object.keys(res.data);
     //console.log("timeframeKey", timeframeKey);
     var chart = anychart.line();
+    var scroller = chart.xScroller();
+    scroller.enabled(true);
     chart.animation(true);
     chart.crosshair().enabled(true).yLabel(false).yStroke(null);
     chart.tooltip().positionMode("point");
