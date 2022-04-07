@@ -1,6 +1,7 @@
 {
   "name": "currency",
   "version": "0.1.0",
+  "homepage": "http://luccro-predictions.infosiphon.com/",
   "private": true,
   "scripts": {
     "dev": "next dev",
