@@ -64,6 +64,18 @@ export default function Home() {
         var plot = chart.plot(0);
         var annotationPeaks = plot.annotations();
         var controller = plot.annotations();
+        var initialValue = false;
+        var finalValue = false;
+
+        var xAnchorDate;
+        var secondXAnchorDate;
+        var valueAnchor;
+        var secondValueAnchor;
+
+        var xAnchorDateSuport;
+        var secondXAnchorDateSuport;
+        var valueAnchorSuport;
+        var secondValueAnchorSuport;
         // ============= Chart Configuration ==========
 
         for (let i = 0; i < result.length - 1; i++) {
@@ -105,7 +117,7 @@ export default function Home() {
           dataTable.addData([candleData]);
 
           if (data["PEAK"] > 0) {
-            //console.log("PEAK", data["PEAK"]);
+            console.log("PEAK", data["PEAK"]);
             annotationPeaks
               .marker()
               .xAnchor(data["datetime"])
@@ -124,7 +136,7 @@ export default function Home() {
               .stroke("2 red 0.75")
               .allowEdit(false);
           }
-
+          plot.eventMarkers();
           if (data["HAMMER"] == "100") {
             const hammerData = {
               date: data["datetime"],
@@ -139,10 +151,6 @@ export default function Home() {
             invertedHammer.push(hammerData);
           }
 
-          var xAnchorDate;
-          var secondXAnchorDate;
-          var valueAnchor;
-          var secondValueAnchor;
           if (data["RESISTANCE_START"] > 0) {
             xAnchorDate = data["datetime"];
             valueAnchor = data["HIGH"];
@@ -150,14 +158,43 @@ export default function Home() {
             secondXAnchorDate = data["datetime"];
             secondValueAnchor = data["HIGH"];
           }
-
-          controller.line({
-            xAnchor: xAnchorDate,
-            valueAnchor: valueAnchor,
-            secondXAnchor: secondXAnchorDate,
-            secondValueAnchor: secondValueAnchor,
-          });
+          if (data["SUPPORT_START"] > 0) {
+            // console.log("support start", data["SUPPORT_START"]);
+            xAnchorDateSuport = data["datetime"];
+            valueAnchorSuport = data["LOW"];
+          } else if (data["SUPPORT_END"] > 0) {
+            //  console.log("support end", data["SUPPORT_END"]);
+            secondXAnchorDateSuport = data["datetime"];
+            secondValueAnchorSuport = data["LOW"];
+          }
         }
+
+        controller.line({
+          xAnchor: xAnchorDate,
+          valueAnchor: valueAnchor,
+          secondXAnchor: secondXAnchorDate,
+          secondValueAnchor: secondValueAnchor,
+          hovered: { stroke: "2 #ff0000" },
+          selected: { stroke: "4 #ff0000" },
+        });
+        var suportLine = controller.line();
+        // set the position of the second annotation
+        suportLine.xAnchor(xAnchorDateSuport);
+        suportLine.valueAnchor(valueAnchorSuport);
+        suportLine.secondXAnchor(secondXAnchorDateSuport);
+        suportLine.secondValueAnchor(secondValueAnchorSuport);
+
+        // configure the visual settings of the second annotation
+        suportLine.normal().stroke("#006600", 1, "10 2");
+        suportLine.hovered().stroke("#00b300", 2, "10 2");
+        suportLine.selected().stroke("#00b300", 4, "10 2");
+
+        console.log(
+          xAnchorDate,
+          valueAnchor,
+          secondXAnchorDate,
+          secondValueAnchor
+        );
         //  console.log(simpleHammer);
         plot.eventMarkers({
           groups: [
@@ -204,7 +241,7 @@ export default function Home() {
 
         plot.candlestick(mapping).name("Candles");
 
-        plot.annotations(markers);
+        // plot.annotations(markers);
         plot.yGrid(true).xGrid(true).yMinorGrid(true).xMinorGrid(true);
         plot
           .line(dataTable.mapAs({ value: 4 }))
