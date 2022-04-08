@@ -13,11 +13,11 @@ export default function Home() {
   const { Option } = Select;
   const { RangePicker } = DatePicker;
   function onChange(value) {
-    console.log(`selected ${value}`);
+    //  console.log(`selected ${value}`);
   }
 
   function onSearch(val) {
-    console.log("search:", val);
+    //   console.log("search:", val);
   }
   function onChangeDate(value, dateString) {
     console.log("Formatted Selected Time: ", dateString);
@@ -28,7 +28,7 @@ export default function Home() {
     var dateFrom = "";
     var dateTo = "";
     if (dateRange.length > 0) {
-      console.log(dateRange[0]);
+      // console.log(dateRange[0]);
       dateFrom = dateRange[0];
       dateTo = dateRange[1];
     }
@@ -63,6 +63,7 @@ export default function Home() {
         var chart = anychart.stock();
         var plot = chart.plot(0);
         var annotationPeaks = plot.annotations();
+        var controller = plot.annotations();
         // ============= Chart Configuration ==========
 
         for (let i = 0; i < result.length - 1; i++) {
@@ -94,13 +95,17 @@ export default function Home() {
             data["STOCH_SLOWK"],
             data["PEAK"],
             data["BOTTOM"],
+            data["RESISTANCE_START"],
+            data["RESISTANCE_END"],
+            data["SUPPORT_END"],
+            data["SUPPORT_START"],
           ];
           //  console.log("candledata", candleData);
 
           dataTable.addData([candleData]);
 
           if (data["PEAK"] > 0) {
-            console.log("PEAK", data["PEAK"]);
+            //console.log("PEAK", data["PEAK"]);
             annotationPeaks
               .marker()
               .xAnchor(data["datetime"])
@@ -110,7 +115,7 @@ export default function Home() {
               .markerType("arrow-down")
               .allowEdit(false);
           } else if (data["BOTTOM"] > 0) {
-            console.log("BOTTOM", data["BOTTOM"]);
+            //console.log("BOTTOM", data["BOTTOM"]);
             annotationPeaks
               .marker()
               .xAnchor(data["datetime"])
@@ -126,39 +131,34 @@ export default function Home() {
               description: "HAMMER " + data["datetime"],
             };
             simpleHammer.push(hammerData);
-            var anchor = {
-              xAnchor: data["datetime"],
-              valueAnchor: data["OPEN"],
-              enabled: true,
-              type: "marker",
-              //  markerType: "arrowdown",
-              offsetY: 30,
-              size: 15,
-              normal: { fill: "red", stroke: "red" },
-            };
-
-            //markers.push(anchor);
           } else if (data["INVERTED_HAMMER"] == "100") {
             const hammerData = {
               date: data["datetime"],
               description: "INVERTED_HAMMER " + data["datetime"],
             };
             invertedHammer.push(hammerData);
-            var ancho = {
-              xAnchor: data["datetime"],
-              valueAnchor: data["OPEN"],
-              enabled: true,
-              type: "marker",
-              markerType: "arrowdown",
-              size: 15,
-              offsetY: -30,
-              normal: { fill: "#0ce3ac", stroke: "#0ce3ac" },
-            };
-
-            //markers.push(ancho);
           }
+
+          var xAnchorDate;
+          var secondXAnchorDate;
+          var valueAnchor;
+          var secondValueAnchor;
+          if (data["RESISTANCE_START"] > 0) {
+            xAnchorDate = data["datetime"];
+            valueAnchor = data["HIGH"];
+          } else if (data["RESISTANCE_END"] > 0) {
+            secondXAnchorDate = data["datetime"];
+            secondValueAnchor = data["HIGH"];
+          }
+
+          controller.line({
+            xAnchor: xAnchorDate,
+            valueAnchor: valueAnchor,
+            secondXAnchor: secondXAnchorDate,
+            secondValueAnchor: secondValueAnchor,
+          });
         }
-        console.log(simpleHammer);
+        //  console.log(simpleHammer);
         plot.eventMarkers({
           groups: [
             {
@@ -197,6 +197,10 @@ export default function Home() {
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
+        mapping.addField("RESISTANCE_START", 26, "RESISTANCE_START");
+        mapping.addField("RESISTANCE_END", 27, "RESISTANCE_END");
+        mapping.addField("SUPPORT_END", 28, "SUPPORT_END");
+        mapping.addField("SUPPORT_START", 29, "SUPPORT_START");
 
         plot.candlestick(mapping).name("Candles");
 
@@ -285,6 +289,15 @@ export default function Home() {
         var bottomlowline = chart.plot(1).line(bottomplot);
         bottomlowline.name("BOTTOM");
         bottomlowline.stroke("#000 0.9");
+
+        var rStart = dataTable.mapAs({ value: 26 });
+        var rStartLine = chart.plot(1).line(rStart);
+        rStartLine.name("RESISTANCE_START");
+        rStartLine.stroke("#000 0.9");
+        var rEnd = dataTable.mapAs({ value: 27 });
+        var rEndLine = chart.plot(1).line(rEnd);
+        rEndLine.name("RESISTANCE_END");
+        rEndLine.stroke("#000 0.9");
 
         const myNode = document.getElementById("container");
         myNode.innerHTML = "";
