@@ -54,14 +54,20 @@ export default function Home() {
         const currencyKey = currencyKeyArray[0];
         var result = res.data.data[currencyKey];
         //==============  Resistance Data ==================
-        const resistanceKeyArray = Object.keys(res.data.resistance);
-        const resistanceKey = resistanceKeyArray[0];
-        var resistance = res.data.resistance[resistanceKey];
+        var resistance = [];
+        if (res.data.resistance) {
+          const resistanceKeyArray = Object.keys(res.data.resistance);
+          const resistanceKey = resistanceKeyArray[0];
+          resistance = res.data.resistance[resistanceKey];
+        }
 
         //==============  Support Data ==================
-        const supportKeyArray = Object.keys(res.data.support);
-        const supportKey = supportKeyArray[0];
-        var support = res.data.support[supportKey];
+        var support = [];
+        if (res.data.support) {
+          const supportKeyArray = Object.keys(res.data.support);
+          const supportKey = supportKeyArray[0];
+          support = res.data.support[supportKey];
+        }
 
         //  console.log("rr", resistance);
         // ============= Chart Configuration ==========
@@ -149,34 +155,36 @@ export default function Home() {
         }
 
         console.log(resistance);
-
-        for (var i = 0; i < resistance.length; i++) {
-          var rStartValue = resistance[i]["RESISTANCE_START_VALUE"];
-          var rEndValue = resistance[i]["RESISTANCE_VALUE_END"];
-          console.log(rEndValue);
-          controller
-            .line({
-              xAnchor: resistance[i]["RESISTANCE_START"],
-              valueAnchor: rStartValue,
-              secondXAnchor: resistance[i]["RESISTANCE_END"],
-              secondValueAnchor: rEndValue,
-              normal: { stroke: "3 green" },
-            })
-            .allowEdit(false);
+        if (resistance.length > 0) {
+          for (var i = 0; i < resistance.length; i++) {
+            var rStartValue = resistance[i]["RESISTANCE_START_VALUE"];
+            var rEndValue = resistance[i]["RESISTANCE_VALUE_END"];
+            console.log(rEndValue);
+            controller
+              .line({
+                xAnchor: resistance[i]["RESISTANCE_START"],
+                valueAnchor: rStartValue,
+                secondXAnchor: resistance[i]["RESISTANCE_END"],
+                secondValueAnchor: rEndValue,
+                normal: { stroke: "3 green" },
+              })
+              .allowEdit(false);
+          }
         }
-
-        for (var i = 0; i < support.length; i++) {
-          var sStartValue = resistance[i]["SUPPORT_START_VALUE"];
-          var sEndValue = resistance[i]["SUPPORT_END_VALUE"];
-          controller
-            .line({
-              xAnchor: support[i]["SUPPORT_START"],
-              valueAnchor: sStartValue,
-              secondXAnchor: support[i]["SUPPORT_END"],
-              secondValueAnchor: sEndValue,
-              normal: { stroke: "3 red" },
-            })
-            .allowEdit(false);
+        if (support.length > 0) {
+          for (var i = 0; i < support.length; i++) {
+            var sStartValue = support[i]["SUPPORT_START_VALUE"];
+            var sEndValue = support[i]["SUPPORT_END_VALUE"];
+            controller
+              .line({
+                xAnchor: support[i]["SUPPORT_START"],
+                valueAnchor: sStartValue,
+                secondXAnchor: support[i]["SUPPORT_END"],
+                secondValueAnchor: sEndValue,
+                normal: { stroke: "3 red" },
+              })
+              .allowEdit(false);
+          }
         }
 
         //  console.log(simpleHammer);
