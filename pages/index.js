@@ -113,6 +113,7 @@ export default function Home() {
             data["STOCH_SLOWK"],
             data["PEAK"],
             data["BOTTOM"],
+            data["CANDLE_NUM"],
           ];
           //  console.log("candledata", candleData);
 
@@ -135,7 +136,7 @@ export default function Home() {
               .xAnchor(data["datetime"])
               .valueAnchor(data["LOW"])
               //   .fill('red 0.5')
-              .stroke("2 red 0.75")
+              .stroke("2 #1890ff 0.75")
               .allowEdit(false);
           }
           plot.eventMarkers();
@@ -166,7 +167,7 @@ export default function Home() {
                 valueAnchor: rStartValue,
                 secondXAnchor: resistance[i]["RESISTANCE_END"],
                 secondValueAnchor: rEndValue,
-                normal: { stroke: "3 green" },
+                normal: { stroke: "2 green" },
               })
               .allowEdit(false);
           }
@@ -181,7 +182,7 @@ export default function Home() {
                 valueAnchor: sStartValue,
                 secondXAnchor: support[i]["SUPPORT_END"],
                 secondValueAnchor: sEndValue,
-                normal: { stroke: "3 red" },
+                normal: { stroke: "2 #1890ff" },
               })
               .allowEdit(false);
           }
@@ -227,32 +228,37 @@ export default function Home() {
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
+        mapping.addField("CANDLE_NUM", 26, "BOTTOM");
 
         plot.candlestick(mapping).name("Candles");
 
-        // plot.annotations(markers);
         plot.yGrid(true).xGrid(true).yMinorGrid(true).xMinorGrid(true);
         plot
           .line(dataTable.mapAs({ value: 4 }))
-          .stroke("3 #0ce3ac")
-          .name("BBANDS_LOWER");
+          .stroke("1 #0ce3ac")
+          .name("BBANDS_LOWER")
+          .enabled(false);
         plot
           .line(dataTable.mapAs({ value: 5 }))
-          .stroke("3 #ffb00b")
-          .name("BBANDS_MIDDLE");
+          .stroke("1 #ffb00b")
+          .name("BBANDS_MIDDLE")
+          .enabled(false);
         plot
           .line(dataTable.mapAs({ value: 6 }))
-          .stroke("3 #ff4200")
-          .name("BBANDS_UPPER");
+          .stroke("1 #ff4200")
+          .name("BBANDS_UPPER")
+          .enabled(false);
 
         plot
           .line(dataTable.mapAs({ value: 15 }))
-          .stroke("3 #33ccee")
-          .name("MA_FAST");
+          .stroke("1 #33ccee")
+          .name("MA_FAST")
+          .enabled(false);
         plot
           .line(dataTable.mapAs({ value: 16 }))
-          .stroke("3 #523a28")
-          .name("MA_SLOW");
+          .stroke("1 #523a28")
+          .name("MA_SLOW")
+          .enabled(false);
         chart.splitters().normal().stroke({
           color: "red",
           dash: "3 4",
@@ -271,6 +277,13 @@ export default function Home() {
         });
 
         // create line series with mapping
+        var bottomLines = chart.plot(1);
+        plot.height("85%");
+        bottomLines.height("15%");
+        var padding = chart.padding();
+
+        padding.top(0);
+
         var adxplot = dataTable.mapAs({ value: 1 });
         var adxline = chart.plot(1).line(adxplot);
         adxline.name("ADX");
@@ -315,6 +328,10 @@ export default function Home() {
         var bottomlowline = chart.plot(1).line(bottomplot);
         bottomlowline.name("BOTTOM");
         bottomlowline.stroke("#000 0.9");
+        var candleNumplot = dataTable.mapAs({ value: 26 });
+        var candlenumline = chart.plot(1).line(candleNumplot);
+        candlenumline.name("CANDLE_NUM");
+        candlenumline.stroke("#000 0.9");
 
         const myNode = document.getElementById("container");
         myNode.innerHTML = "";
@@ -443,8 +460,6 @@ export default function Home() {
           </div>
           <Spin tip="Loading..." spinning={loading}>
             <div className="white-box">
-              <h2>Chart</h2>
-
               <div id="container" className="chart-container"></div>
             </div>
           </Spin>
