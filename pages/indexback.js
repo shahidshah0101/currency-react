@@ -417,9 +417,9 @@ export default function Home() {
       });
   };
   const showUptrend = () => {
-    var annotationsCount = plotGlobal.annotations().getAnnotationsCount();
-    plotGlobal.annotations().removeAllAnnotations();
-    console.log(annotationsCount);
+    var controller = plotGlobal.annotations();
+    console.log(controller);
+    controller.line({}).enabled(false);
   };
   return (
     <div>

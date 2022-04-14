@@ -157,3 +157,32 @@ font-weight: bolder;
 .filters button {
 margin-left: auto;
 }
+.chart-action{
+  position: absolute;
+  top: 5px;
+  right: 10px;
+  z-index: 99;
+  display: flex;
+}
+.chart-action-item{
+  margin-left: 4px;
+}
+.chart-action-item .ant-tag{
+  cursor: pointer;
+}
+.chart-action .ico-lg{
+display: flex;
+flex-direction: row;
+justify-content: center;
+align-items: center;
+border-radius: 2px;
+cursor: pointer;
+width: 30px;
+height: 30px;
+box-shadow: 9px 9px 20px rgba(163, 177, 198, 0.6),
+-9px -9px 20px rgba(255, 255, 255, 0.5);
+border: 1px solid #ccc;
+}
+.chart-action .ico-lg{
+  font-size: 20px;
+}
