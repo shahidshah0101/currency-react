@@ -276,8 +276,8 @@ export default function Home() {
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
         mapping.addField("CANDLE_NUM", 26, "BOTTOM");
-        mapping.addField("UPTREND_ANGLE", 27, "UPTREND_ANGLE");
-        mapping.addField("DOWNTREND_ANGLE", 28, "DOWNTREND_ANGLE");
+        mapping.addField("PEAK_TREND_ANGLE", 27, "PEAK_TREND_ANGLE");
+        mapping.addField("BOTTOM_TREND_ANGLE", 28, "BOTTOM_TREND_ANGLE");
 
         plot.candlestick(mapping).name("Candles");
 
@@ -384,12 +384,12 @@ export default function Home() {
 
         var upTrendAngleplot = dataTable.mapAs({ value: 27 });
         var upTrendAngleline = chart.plot(1).line(upTrendAngleplot);
-        upTrendAngleline.name("UPTREND_ANGLE");
+        upTrendAngleline.name("PEAK_TREND_ANGLE");
         upTrendAngleline.stroke("#000 0.9");
 
         var downTrendAngleplot = dataTable.mapAs({ value: 28 });
         var downTrendAngleline = chart.plot(1).line(downTrendAngleplot);
-        downTrendAngleline.name("DOWNTREND_ANGLE");
+        downTrendAngleline.name("BOTTOM_TREND_ANGLE");
         downTrendAngleline.stroke("#000 0.9");
 
         const myNode = document.getElementById("container");
