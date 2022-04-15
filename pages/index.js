@@ -173,7 +173,7 @@ export default function Home() {
         }
 
         //==================== Resistance & Support ======================
-        /* if (resistance.length > 0) {
+        if (resistance.length > 0) {
           for (var i = 0; i < resistance.length; i++) {
             var rStartValue = resistance[i]["RESISTANCE_START_VALUE"];
             var rEndValue = resistance[i]["RESISTANCE_VALUE_END"];
@@ -202,7 +202,7 @@ export default function Home() {
               })
               .allowEdit(false);
           }
-        }*/
+        }
         //==================== Resistance & Support ======================
 
         //==================== Trends ======================
