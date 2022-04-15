@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Head from "next/head";
-import { Form, Button, Select, DatePicker, Spin, Tag } from "antd";
+import { Form, Button, Select, DatePicker, Spin, Checkbox } from "antd";
 import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
 import anychart from "anychart";
@@ -10,8 +10,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState([]);
   const [plotGlobal, setPlotGlobal] = useState(null);
-  const [uptrendBtn, setUptrendBtn] = useState(false);
-  const [downtrendBtn, setDowntrendBtn] = useState(false);
+  const [chartData, setChartData] = useState(null);
+
   const { Option } = Select;
   const { RangePicker } = DatePicker;
 
@@ -24,7 +24,6 @@ export default function Home() {
     var dateFrom = "";
     var dateTo = "";
     if (dateRange.length > 0) {
-      // console.log(dateRange[0]);
       dateFrom = dateRange[0];
       dateTo = dateRange[1];
     }
@@ -36,7 +35,9 @@ export default function Home() {
       timeframe: values.timeframe,
       to: dateTo,
       from: dateFrom,
+      //annotations: values.annotations,
     };
+    // console.log(formData);
     //return false;
     axios({
       method: "post",
@@ -49,6 +50,8 @@ export default function Home() {
         const currencyKeyArray = Object.keys(res.data.data);
         const currencyKey = currencyKeyArray[0];
         var result = res.data.data[currencyKey];
+        setChartData(res.data);
+        console.log("check", chartData);
         //==============  Resistance Data ==================
         var resistance = [];
         if (res.data.resistance) {
@@ -70,14 +73,12 @@ export default function Home() {
           const upTrendKeyArray = Object.keys(res.data.up_trend);
           const upTrendKey = upTrendKeyArray[0];
           up_trend = res.data.up_trend[upTrendKey];
-          setUptrendBtn(true);
         }
         var down_trend = [];
         if (res.data.down_trend) {
           const downTrendKeyArray = Object.keys(res.data.down_trend);
           const downTrendKey = downTrendKeyArray[0];
           down_trend = res.data.down_trend[downTrendKey];
-          setDowntrendBtn(true);
         }
 
         //  console.log("rr", resistance);
@@ -91,7 +92,6 @@ export default function Home() {
         var chart = anychart.stock();
         var plot = chart.plot(0);
         setPlotGlobal(plot);
-        console.log("plot inner", plot);
         var annotationPeaks = plot.annotations();
         var controller = plot.annotations();
 
@@ -127,6 +127,10 @@ export default function Home() {
             data["PEAK"],
             data["BOTTOM"],
             data["CANDLE_NUM"],
+            data["PEAK_TREND_ANGLE"] !== "None" ? data["PEAK_TREND_ANGLE"] : 0,
+            data["BOTTOM_TREND_ANGLE"] !== "None"
+              ? data["BOTTOM_TREND_ANGLE"]
+              : 0,
           ];
           //  console.log("candledata", candleData);
 
@@ -169,7 +173,7 @@ export default function Home() {
         }
 
         //==================== Resistance & Support ======================
-        if (resistance.length > 0) {
+        /* if (resistance.length > 0) {
           for (var i = 0; i < resistance.length; i++) {
             var rStartValue = resistance[i]["RESISTANCE_START_VALUE"];
             var rEndValue = resistance[i]["RESISTANCE_VALUE_END"];
@@ -198,7 +202,7 @@ export default function Home() {
               })
               .allowEdit(false);
           }
-        }
+        }*/
         //==================== Resistance & Support ======================
 
         //==================== Trends ======================
@@ -207,10 +211,10 @@ export default function Home() {
             var data = up_trend[i];
             controller
               .line({
-                xAnchor: data["UPTREND_START"],
-                valueAnchor: data["UPTREND_START_VALUE"],
-                secondXAnchor: data["UPTREND_END"],
-                secondValueAnchor: data["UPTREND_END_VALUE"],
+                xAnchor: data["PEAK_TREND_START"],
+                valueAnchor: data["PEAK_TREND_START_VALUE"],
+                secondXAnchor: data["PEAK_TREND_END"],
+                secondValueAnchor: data["PEAK_TREND_END_VALUE"],
               })
               .allowEdit(false)
               .stroke({ color: "green", dash: "15 2" });
@@ -221,10 +225,10 @@ export default function Home() {
             var data = down_trend[i];
             controller
               .line({
-                xAnchor: data["DOWNTREND_START"],
-                valueAnchor: data["DOWNTREND_START_VALUE"],
-                secondXAnchor: data["DOWNTREND_END"],
-                secondValueAnchor: data["DOWNTREND_END_VALUE"],
+                xAnchor: data["BOTTOM_TREND_START"],
+                valueAnchor: data["BOTTOM_TREND_START_VALUE"],
+                secondXAnchor: data["BOTTOM_TREND_END"],
+                secondValueAnchor: data["BOTTOM_TREND_END_VALUE"],
               })
               .allowEdit(false)
               .stroke({ color: "red", dash: "15 2" });
@@ -272,6 +276,8 @@ export default function Home() {
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
         mapping.addField("CANDLE_NUM", 26, "BOTTOM");
+        mapping.addField("UPTREND_ANGLE", 27, "UPTREND_ANGLE");
+        mapping.addField("DOWNTREND_ANGLE", 28, "DOWNTREND_ANGLE");
 
         plot.candlestick(mapping).name("Candles");
 
@@ -370,10 +376,21 @@ export default function Home() {
         var bottomlowline = chart.plot(1).line(bottomplot);
         bottomlowline.name("BOTTOM");
         bottomlowline.stroke("#000 0.9");
+
         var candleNumplot = dataTable.mapAs({ value: 26 });
         var candlenumline = chart.plot(1).line(candleNumplot);
         candlenumline.name("CANDLE_NUM");
         candlenumline.stroke("#000 0.9");
+
+        var upTrendAngleplot = dataTable.mapAs({ value: 27 });
+        var upTrendAngleline = chart.plot(1).line(upTrendAngleplot);
+        upTrendAngleline.name("UPTREND_ANGLE");
+        upTrendAngleline.stroke("#000 0.9");
+
+        var downTrendAngleplot = dataTable.mapAs({ value: 28 });
+        var downTrendAngleline = chart.plot(1).line(downTrendAngleplot);
+        downTrendAngleline.name("DOWNTREND_ANGLE");
+        downTrendAngleline.stroke("#000 0.9");
 
         const myNode = document.getElementById("container");
         myNode.innerHTML = "";
@@ -416,11 +433,7 @@ export default function Home() {
         setLoading(false);
       });
   };
-  const showUptrend = () => {
-    var annotationsCount = plotGlobal.annotations().getAnnotationsCount();
-    plotGlobal.annotations().removeAllAnnotations();
-    console.log(annotationsCount);
-  };
+
   return (
     <div>
       <Head>
@@ -436,7 +449,7 @@ export default function Home() {
       <main className="dashboard">
         <Sidebar />
         <div className="main-content">
-          <div className="white-box">
+          <div className="white-box filters">
             <Form
               name="horizontal_login"
               layout="inline"
@@ -445,6 +458,7 @@ export default function Home() {
                 dataset: "train",
                 model: "CNN_NEW_TDC",
                 timeframe: "M240",
+                annotations: ["Highs", "Lows", "HighsTrends", "LowsTrends"],
               }}
               onFinish={onFinish}
             >
@@ -458,7 +472,7 @@ export default function Home() {
                       .toLowerCase()
                       .indexOf(input.toLowerCase()) >= 0
                   }
-                  style={{ width: "120px" }}
+                  style={{ width: "110px" }}
                 >
                   <Option value="GBP_JPY">GBP_JPY</Option>
                   <Option value="EUR_USD">EUR_USD</Option>
@@ -502,7 +516,7 @@ export default function Home() {
                 </Select>
               </Form.Item>
               <Form.Item label="Time Frames" name="timeframe">
-                <Select style={{ width: "100px" }}>
+                <Select style={{ width: "80px" }}>
                   <Option value="M15">M15</Option>
                   <Option value="M30">M30</Option>
                   <Option value="M60">M60</Option>
@@ -517,6 +531,7 @@ export default function Home() {
                   style={{ width: "300px" }}
                 />
               </Form.Item>
+
               <Form.Item>
                 <Button type="primary" htmlType="submit">
                   Submit
@@ -526,18 +541,6 @@ export default function Home() {
           </div>
           <Spin tip="Loading..." spinning={loading}>
             <div className="white-box">
-              <div className="chart-action">
-                <div className="chart-action-item">
-                  {uptrendBtn && (
-                    <Tag onClick={showUptrend} color="green">
-                      Up Trend
-                    </Tag>
-                  )}
-                </div>
-                <div className="chart-action-item">
-                  {downtrendBtn && <Tag color="red">Down Trend</Tag>}
-                </div>
-              </div>
               <div id="container" className="chart-container"></div>
             </div>
           </Spin>
