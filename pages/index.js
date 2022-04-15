@@ -11,7 +11,15 @@ export default function Home() {
   const [dateRange, setDateRange] = useState([]);
   const [plotGlobal, setPlotGlobal] = useState(null);
   const [chartData, setChartData] = useState(null);
-
+  const filterAnotation = [
+    "H/I",
+    "Highs",
+    "Lows",
+    "Support",
+    "Resistance",
+    "HighsTrends",
+    "LowsTrends",
+  ];
   const { Option } = Select;
   const { RangePicker } = DatePicker;
 
@@ -35,9 +43,9 @@ export default function Home() {
       timeframe: values.timeframe,
       to: dateTo,
       from: dateFrom,
-      //annotations: values.annotations,
+      annotations: values.annotations,
     };
-    // console.log(formData);
+    console.log(formData);
     //return false;
     axios({
       method: "post",
@@ -531,7 +539,9 @@ export default function Home() {
                   style={{ width: "300px" }}
                 />
               </Form.Item>
-
+              <Form.Item label="Annotations" name="annotations">
+                <Checkbox.Group options={filterAnotation} />
+              </Form.Item>
               <Form.Item>
                 <Button type="primary" htmlType="submit">
                   Submit
