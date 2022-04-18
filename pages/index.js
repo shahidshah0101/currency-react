@@ -152,8 +152,8 @@ export default function Home() {
               .valueAnchor(data["HIGH"])
               //.fill('green 0.5')
               .stroke("2 green 0.75")
-              .markerType("arrow-down")
-              .allowEdit(false);
+              .markerType("arrow-down");
+            // .allowEdit(false);
           } else if (data["BOTTOM"] > 0) {
             //console.log("BOTTOM", data["BOTTOM"]);
             annotationPeaks
