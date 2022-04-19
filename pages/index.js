@@ -12,14 +12,12 @@ export default function Home() {
   const [plotGlobal, setPlotGlobal] = useState(null);
   const [chartData, setChartData] = useState(null);
   const filterAnotation = [
-    "H/I",
-    "Highs",
-    "Lows",
-    "Support",
-    "Resistance",
-    "HighsTrends",
-    "LowsTrends",
+    { label: "Candlestick Patterns", value: "H/I" },
+    { label: "Extreme Points", value: "extremePoints" },
+    { label: "Levels", value: "levels" },
+    { label: "Trends", value: "trends" },
   ];
+
   const { Option } = Select;
   const { RangePicker } = DatePicker;
 
@@ -29,6 +27,23 @@ export default function Home() {
 
   useEffect(() => {});
   const onFinish = (values) => {
+    var annotationsArray = [];
+    console.log(values.annotations);
+    for (var i = 0; i < values.annotations.length; i++) {
+      if (values.annotations[i] === "H/I") {
+        annotationsArray.push("H/I");
+      }
+      if (values.annotations[i] === "extremePoints") {
+        annotationsArray.push("Highs", "Lows");
+      }
+      if (values.annotations[i] === "levels") {
+        annotationsArray.push("Support", "Resistance");
+      }
+      if (values.annotations[i] === "trends") {
+        annotationsArray.push("HighsTrends", "LowsTrends");
+      }
+    }
+
     var dateFrom = "";
     var dateTo = "";
     if (dateRange.length > 0) {
@@ -43,10 +58,9 @@ export default function Home() {
       timeframe: values.timeframe,
       to: dateTo,
       from: dateFrom,
-      annotations: values.annotations,
+      annotations: annotationsArray,
     };
-    console.log(formData);
-    //return false;
+
     axios({
       method: "post",
       headers: { "Content-Type": "application/json" },
@@ -59,7 +73,7 @@ export default function Home() {
         const currencyKey = currencyKeyArray[0];
         var result = res.data.data[currencyKey];
         setChartData(res.data);
-        console.log("check", chartData);
+        // console.log("check", chartData);
         //==============  Resistance Data ==================
         var resistance = [];
         if (res.data.resistance) {
@@ -283,12 +297,18 @@ export default function Home() {
         mapping.addField("STOCH_SLOWK", 23, "STOCH_SLOWK");
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
-        mapping.addField("CANDLE_NUM", 26, "BOTTOM");
+        mapping.addField("CANDLE_NUM", 26, "CANDLE_NUM");
         mapping.addField("PEAK_TREND_ANGLE", 27, "PEAK_TREND_ANGLE");
         mapping.addField("BOTTOM_TREND_ANGLE", 28, "BOTTOM_TREND_ANGLE");
 
-        plot.candlestick(mapping).name("Candles");
+        var serires = plot.candlestick(mapping);
 
+        serires.name("Candles");
+        serires
+          .tooltip()
+          .format(
+            `\nOpen：{%open}\nHigh：{%high}\nLow：{%low}\nClose：{%close}\nCANDLE_NUM：{%CANDLE_NUM}`
+          );
         plot
           .line(dataTable.mapAs({ value: 4 }))
           .stroke("1 #0ce3ac")
@@ -315,6 +335,7 @@ export default function Home() {
           .stroke("1 #523a28")
           .name("MA_SLOW")
           .enabled(false);
+
         chart.splitters().normal().stroke({
           color: "red",
           dash: "3 4",
@@ -384,11 +405,6 @@ export default function Home() {
         var bottomlowline = chart.plot(1).line(bottomplot);
         bottomlowline.name("BOTTOM");
         bottomlowline.stroke("#000 0.9");
-
-        var candleNumplot = dataTable.mapAs({ value: 26 });
-        var candlenumline = chart.plot(1).line(candleNumplot);
-        candlenumline.name("CANDLE_NUM");
-        candlenumline.stroke("#000 0.9");
 
         var upTrendAngleplot = dataTable.mapAs({ value: 27 });
         var upTrendAngleline = chart.plot(1).line(upTrendAngleplot);
@@ -466,7 +482,7 @@ export default function Home() {
                 dataset: "train",
                 model: "CNN_NEW_TDC",
                 timeframe: "M240",
-                annotations: ["Highs", "Lows", "HighsTrends", "LowsTrends"],
+                annotations: ["extremePoints", "trends"],
               }}
               onFinish={onFinish}
             >
