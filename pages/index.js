@@ -5,6 +5,7 @@ import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
 import anychart from "anychart";
 import axios from "axios";
+import moment from "moment";
 
 export default function Home() {
   const [loading, setLoading] = useState(false);
@@ -149,9 +150,11 @@ export default function Home() {
             data["PEAK"],
             data["BOTTOM"],
             data["CANDLE_NUM"],
-            data["PEAK_TREND_ANGLE"] !== "None" ? data["PEAK_TREND_ANGLE"] : 0,
-            data["BOTTOM_TREND_ANGLE"] !== "None"
-              ? data["BOTTOM_TREND_ANGLE"]
+            data["PEAK_TREND_DISTANCE"] !== "None"
+              ? data["PEAK_TREND_DISTANCE"]
+              : 0,
+            data["BOTTOM_TREND_DISTANCE"] !== "None"
+              ? data["BOTTOM_TREND_DISTANCE"]
               : 0,
           ];
           //  console.log("candledata", candleData);
@@ -198,7 +201,7 @@ export default function Home() {
         if (resistance.length > 0) {
           for (var i = 0; i < resistance.length; i++) {
             var rStartValue = resistance[i]["RESISTANCE_START_VALUE"];
-            var rEndValue = resistance[i]["RESISTANCE_VALUE_END"];
+            var rEndValue = resistance[i]["RESISTANCE_END_VALUE"];
             controller
               .line({
                 xAnchor: resistance[i]["RESISTANCE_START"],
@@ -239,7 +242,17 @@ export default function Home() {
                 secondValueAnchor: data["PEAK_TREND_END_VALUE"],
               })
               .allowEdit(false)
-              .stroke({ color: "green", dash: "15 2" });
+              .stroke({ color: "green" });
+
+            controller
+              .line({
+                xAnchor: data["PEAK_TREND_END"],
+                valueAnchor: data["PEAK_TREND_END_VALUE"],
+                secondXAnchor: data["PEAK_TREND_EXTENDED"],
+                secondValueAnchor: data["PEAK_TREND_EXTENDED_VALUE"],
+              })
+              .allowEdit(false)
+              .stroke({ color: "green", dash: "4 3" });
           }
         }
         if (down_trend.length > 0) {
@@ -253,7 +266,17 @@ export default function Home() {
                 secondValueAnchor: data["BOTTOM_TREND_END_VALUE"],
               })
               .allowEdit(false)
-              .stroke({ color: "red", dash: "15 2" });
+              .stroke({ color: "red" });
+
+            controller
+              .line({
+                xAnchor: data["BOTTOM_TREND_END"],
+                valueAnchor: data["BOTTOM_TREND_END_VALUE"],
+                secondXAnchor: data["BOTTOM_TREND_EXTENDED"],
+                secondValueAnchor: data["BOTTOM_TREND_EXTENDED_VALUE"],
+              })
+              .allowEdit(false)
+              .stroke({ color: "red", dash: "4 3" });
           }
         }
         //==================== Trends ======================
@@ -298,8 +321,8 @@ export default function Home() {
         mapping.addField("PEAK", 24, "PEAK");
         mapping.addField("BOTTOM", 25, "BOTTOM");
         mapping.addField("CANDLE_NUM", 26, "CANDLE_NUM");
-        mapping.addField("PEAK_TREND_ANGLE", 27, "PEAK_TREND_ANGLE");
-        mapping.addField("BOTTOM_TREND_ANGLE", 28, "BOTTOM_TREND_ANGLE");
+        mapping.addField("PEAK_TREND_DISTANCE", 27, "PEAK_TREND_DISTANCE");
+        mapping.addField("BOTTOM_TREND_DISTANCE", 28, "BOTTOM_TREND_DISTANCE");
 
         var serires = plot.candlestick(mapping);
 
@@ -365,56 +388,79 @@ export default function Home() {
         var adxline = chart.plot(1).line(adxplot);
         adxline.name("ADX");
         adxline.stroke("#1ed760 0.9");
-
-        var atrplot = dataTable.mapAs({ value: 3 });
-        var atrline = chart.plot(1).line(atrplot);
-        atrline.name("ATR");
-        atrline.stroke("#013179 0.9");
-
-        var rsi = dataTable.mapAs({ value: 20 });
-        var rsiline = chart.plot(1).line(rsi);
-        rsiline.name("RSI");
-        rsiline.stroke("#ad6bd3 0.9");
+        // adxline.enabled(false);
 
         var minusDIPLot = dataTable.mapAs({ value: 17 });
         var minusDIline = chart.plot(1).line(minusDIPLot);
         minusDIline.name("MINUS_DI");
         minusDIline.stroke("#ffd97c 0.9");
+        // minusDIline.enabled(false);
 
         var plusDIPLot = dataTable.mapAs({ value: 19 });
         var plusDIline = chart.plot(1).line(plusDIPLot);
         plusDIline.name("PLUS_DI");
-        plusDIline.stroke("#bdc29b 0.9");
+        plusDIline.stroke("red 0.9");
+        // plusDIline.enabled(false);
 
         var stochplot = dataTable.mapAs({ value: 22 });
         var stochplotline = chart.plot(1).line(stochplot);
         stochplotline.name("STOCH_SLOWD");
         stochplotline.stroke("#3d5954 0.9");
+        // stochplotline.enabled(false);
 
         var stochslowkplot = dataTable.mapAs({ value: 23 });
         var stochslowline = chart.plot(1).line(stochslowkplot);
         stochslowline.name("STOCH_SLOWK");
         stochslowline.stroke("#fcafac 0.9");
+        //stochslowline.enabled(false);
+
+        var legend = chart.plot(1).legend();
+        legend.listen("legendItemClick", function (e) {
+          var index = e["itemIndex"];
+          console.log(index);
+          if (index === 0) {
+            minusDIline.enabled(!minusDIline.enabled());
+            plusDIline.enabled(!plusDIline.enabled());
+          } else if (index === 3) {
+            stochslowline.enabled(!stochslowline.enabled());
+          }
+        });
+
+        var atrplot = dataTable.mapAs({ value: 3 });
+        var atrline = chart.plot(1).line(atrplot);
+        atrline.name("ATR");
+        atrline.stroke("#013179 0.9");
+        atrline.enabled(false);
+
+        var rsi = dataTable.mapAs({ value: 20 });
+        var rsiline = chart.plot(1).line(rsi);
+        rsiline.name("RSI");
+        rsiline.stroke("#ad6bd3 0.9");
+        rsiline.enabled(false);
 
         var peakplot = dataTable.mapAs({ value: 24 });
         var peaklowline = chart.plot(1).line(peakplot);
         peaklowline.name("PEAK");
         peaklowline.stroke("#444 0.9");
+        peaklowline.enabled(false);
 
         var bottomplot = dataTable.mapAs({ value: 25 });
         var bottomlowline = chart.plot(1).line(bottomplot);
         bottomlowline.name("BOTTOM");
         bottomlowline.stroke("#000 0.9");
+        bottomlowline.enabled(false);
 
         var upTrendAngleplot = dataTable.mapAs({ value: 27 });
         var upTrendAngleline = chart.plot(1).line(upTrendAngleplot);
-        upTrendAngleline.name("PEAK_TREND_ANGLE");
+        upTrendAngleline.name("PEAK_TREND_DISTANCE");
         upTrendAngleline.stroke("#000 0.9");
+        upTrendAngleline.enabled(false);
 
         var downTrendAngleplot = dataTable.mapAs({ value: 28 });
         var downTrendAngleline = chart.plot(1).line(downTrendAngleplot);
-        downTrendAngleline.name("BOTTOM_TREND_ANGLE");
+        downTrendAngleline.name("BOTTOM_TREND_DISTANCE");
         downTrendAngleline.stroke("#000 0.9");
+        downTrendAngleline.enabled(false);
 
         const myNode = document.getElementById("container");
         myNode.innerHTML = "";
