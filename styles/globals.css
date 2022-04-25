@@ -154,9 +154,7 @@ font-weight: bolder;
 .filters form{
   width: 100%;
 }
-.filters button {
-margin-left: auto;
-}
+
 .chart-action{
   position: absolute;
   top: 5px;

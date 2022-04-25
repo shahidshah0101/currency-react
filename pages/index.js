@@ -25,6 +25,14 @@ export default function Home() {
   function onChangeDate(value, dateString) {
     setDateRange(dateString);
   }
+  function disabledDate(current) {
+    let dateFrom = "2010-01-08 04:00:00";
+    let dateTo = "2021-12-31 16:00:00";
+    return (
+      (current && current < moment(dateFrom, "YYYY-MM-DD HH:mm:ss")) ||
+      current > moment(dateTo, "YYYY-MM-DD HH:mm:ss")
+    );
+  }
 
   useEffect(() => {});
   const onFinish = (values) => {
@@ -467,6 +475,11 @@ export default function Home() {
         //chart.container("container");
         if (!chart.container()) chart.container("container");
         plot.yGrid(false).xGrid(false).yMinorGrid(false).xMinorGrid(false);
+        var crosshair = chart.crosshair();
+        crosshair.enabled(true);
+
+        // Set display mode.
+        crosshair.displayMode("float");
 
         chart.contextMenu().itemsFormatter(function (items) {
           (items["hide-grid"] = {
@@ -598,6 +611,7 @@ export default function Home() {
                 <RangePicker
                   showTime
                   onChange={onChangeDate}
+                  disabledDate={disabledDate}
                   style={{ width: "300px" }}
                 />
               </Form.Item>

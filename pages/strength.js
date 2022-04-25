@@ -14,6 +14,7 @@ import "antd/dist/antd.css";
 import Sidebar from "../components/Sidebar";
 import anychart from "anychart";
 import axios from "axios";
+import moment from "moment";
 
 export default function Strength() {
   const [loading, setLoading] = useState(false);
@@ -40,6 +41,14 @@ export default function Strength() {
 
   function onChangeDate(value, dateString) {
     setDateRange(dateString);
+  }
+  function disabledDate(current) {
+    let dateFrom = "2010-01-08 04:00:00";
+    let dateTo = "2021-12-31 16:00:00";
+    return (
+      (current && current < moment(dateFrom, "YYYY-MM-DD HH:mm:ss")) ||
+      current > moment(dateTo, "YYYY-MM-DD HH:mm:ss")
+    );
   }
   const applyFilters = (values) => {
     //console.log("values", values);
@@ -318,6 +327,7 @@ export default function Strength() {
                     <Form.Item label="Date Time" name="date">
                       <RangePicker
                         showTime
+                        disabledDate={disabledDate}
                         onChange={onChangeDate}
                         style={{ width: "300px" }}
                       />
