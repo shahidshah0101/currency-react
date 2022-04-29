@@ -10,6 +10,8 @@ import moment from "moment";
 export default function Home() {
   const [loading, setLoading] = useState(false);
   const [dateRange, setDateRange] = useState([]);
+  const [dateRangeFrom, setDateRangeFrom] = useState([]);
+  const [dateRangeTo, setDateRangeTo] = useState([]);
   const [plotGlobal, setPlotGlobal] = useState(null);
   const [chartData, setChartData] = useState(null);
   const filterAnotation = [
@@ -22,8 +24,13 @@ export default function Home() {
   const { Option } = Select;
   const { RangePicker } = DatePicker;
 
-  function onChangeDate(value, dateString) {
-    setDateRange(dateString);
+  function onChangeDateFrom(value, dateStringFrom) {
+    let dateFrom = dateStringFrom + " " + "00:00:00";
+    setDateRangeFrom(dateFrom);
+  }
+  function onChangeDateTo(value, dateStringTo) {
+    let dateTo = dateStringTo + " " + "00:00:00";
+    setDateRangeTo(dateTo);
   }
   function disabledDate(current) {
     let dateFrom = "2010-01-08 04:00:00";
@@ -53,20 +60,14 @@ export default function Home() {
       }
     }
 
-    var dateFrom = "";
-    var dateTo = "";
-    if (dateRange.length > 0) {
-      dateFrom = dateRange[0];
-      dateTo = dateRange[1];
-    }
     setLoading(true);
     const formData = {
       currency: values.currencies,
       dataset: values.dataset,
       model: values.model,
       timeframe: values.timeframe,
-      to: dateTo,
-      from: dateFrom,
+      from: dateRangeFrom,
+      to: dateRangeTo,
       annotations: annotationsArray,
     };
 
@@ -607,12 +608,16 @@ export default function Home() {
                   <Option value="M1440">M1440</Option>
                 </Select>
               </Form.Item>
-              <Form.Item label="Date" name="date">
-                <RangePicker
-                  showTime
-                  onChange={onChangeDate}
+              <Form.Item label="From" name="datefrom">
+                <DatePicker
                   disabledDate={disabledDate}
-                  style={{ width: "300px" }}
+                  onChange={onChangeDateFrom}
+                />
+              </Form.Item>
+              <Form.Item label="To" name="dateto">
+                <DatePicker
+                  disabledDate={disabledDate}
+                  onChange={onChangeDateTo}
                 />
               </Form.Item>
               <Form.Item label="Annotations" name="annotations">

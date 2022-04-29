@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+
 import Head from "next/head";
 import {
   Form,
@@ -18,14 +19,13 @@ import moment from "moment";
 
 export default function Strength() {
   const [loading, setLoading] = useState(false);
-  const [dateRange, setDateRange] = useState([]);
+  const [dateRangeFrom, setDateRangeFrom] = useState([]);
+  const [dateRangeTo, setDateRangeTo] = useState([]);
   const [startRatio, setStartRatio] = useState(0);
   const [endRatio, setEndRatio] = useState(1);
 
   var chartAnalog;
   var chartDigital;
-
-  const { RangePicker } = DatePicker;
 
   const currencyOptions = [
     "EUR",
@@ -39,8 +39,13 @@ export default function Strength() {
   ];
   const timeframeOptions = ["M15", "M30", "M60", "M240"];
 
-  function onChangeDate(value, dateString) {
-    setDateRange(dateString);
+  function onChangeDateFrom(value, dateStringFrom) {
+    let dateFrom = dateStringFrom + " " + "00:00:00";
+    setDateRangeFrom(dateFrom);
+  }
+  function onChangeDateTo(value, dateStringTo) {
+    let dateTo = dateStringTo + " " + "00:00:00";
+    setDateRangeTo(dateTo);
   }
   function disabledDate(current) {
     let dateFrom = "2010-01-08 04:00:00";
@@ -51,28 +56,22 @@ export default function Strength() {
     );
   }
   const applyFilters = (values) => {
-    //console.log("values", values);
-    var dateFrom = "";
-    var dateTo = "";
-    if (dateRange.length > 0) {
-      console.log(dateRange[0]);
-      dateFrom = dateRange[0];
-      dateTo = dateRange[1];
-    }
+    console.log("values", values);
+    //return false;
     setLoading(true);
     const analogData = {
       timeframe: values.timeframe,
       currency: values.currency,
       signal_type: "analog",
-      to: dateTo,
-      from: dateFrom,
+      from: dateRangeFrom,
+      to: dateRangeTo,
     };
     const digitalData = {
       timeframe: values.timeframe,
       currency: values.currency,
       signal_type: "digital",
-      to: dateTo,
-      from: dateFrom,
+      from: dateRangeFrom,
+      to: dateRangeTo,
     };
     //return false;
 
@@ -120,10 +119,27 @@ export default function Strength() {
     scroller.enabled(true);
 
     chart.animation(true);
-    chart.crosshair().enabled(true).yLabel(false).yStroke(null);
+    chart.crosshair().enabled(true);
     chart.tooltip().positionMode("point");
-    chart.xAxis().labels().padding(0).rotation(90);
+
+    var xAxisDate = chart.xAxis().labels();
+    xAxisDate.padding(10).rotation(90);
+    xAxisDate.fontSize(12);
+    xAxisDate.format(function (value) {
+      var truncateDate = new Date(value["tickValue"]);
+      var options = {
+        day: "numeric",
+        month: "numeric",
+      };
+      return truncateDate.toLocaleDateString("en-US", options);
+    });
+
     chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
+    var legend = chart.legend();
+    legend.listen("legendItemClick", function (e) {
+      var series = chartDigital.getSeriesAt(e.itemIndex);
+      series.enabled(!series.enabled());
+    });
 
     var arraycontainsM15 = timeframeKey.indexOf("M15") > -1;
     var arraycontainsM30 = timeframeKey.indexOf("M30") > -1;
@@ -133,7 +149,7 @@ export default function Strength() {
     if (arraycontainsM15) {
       var dataSetM15 = anychart.data.set(res.data["M15"].data["analog"]);
       for (var i = 0; i < res.data["M15"].data["currencies"].length; i++) {
-        console.log(i);
+        //console.log(i);
         let data = res.data["M15"].data["currencies"][i];
         var firstSeriesDataM15 = dataSetM15.mapAs({ x: 0, value: 1 + i });
         var firstSeriesM15 = chart.line(firstSeriesDataM15);
@@ -158,7 +174,7 @@ export default function Strength() {
     if (arraycontainsM60) {
       var dataSetM60 = anychart.data.set(res.data["M60"].data["analog"]);
       for (var i = 0; i < res.data["M60"].data["currencies"].length; i++) {
-        console.log(i);
+        // console.log(i);
         let data = res.data["M60"].data["currencies"][i];
         var firstSeriesDataM60 = dataSetM60.mapAs({ x: 0, value: 1 + i });
         var firstSeriesM60 = chart.stepLine(firstSeriesDataM60);
@@ -220,8 +236,23 @@ export default function Strength() {
     chart.animation(true);
     chart.crosshair().enabled(true).yLabel(false).yStroke(null);
     chart.tooltip().positionMode("point");
-    chart.xAxis().labels().padding(0).rotation(90);
     chart.legend().enabled(true).fontSize(13).padding([0, 0, 10, 0]);
+    var legend = chart.legend();
+    legend.listen("legendItemClick", function (e) {
+      var series = chartAnalog.getSeriesAt(e.itemIndex);
+      series.enabled(!series.enabled());
+    });
+    var xAxisDate = chart.xAxis().labels();
+    xAxisDate.padding(0).rotation(90);
+    xAxisDate.fontSize(12);
+    xAxisDate.format(function (value) {
+      var truncateDate = new Date(value["tickValue"]);
+      var options = {
+        day: "numeric",
+        month: "numeric",
+      };
+      return truncateDate.toLocaleDateString("en-US", options);
+    });
 
     var arraycontainsM15 = timeframeKey.indexOf("M15") > -1;
     var arraycontainsM30 = timeframeKey.indexOf("M30") > -1;
@@ -231,7 +262,7 @@ export default function Strength() {
     if (arraycontainsM15) {
       var dataSetM15 = anychart.data.set(res.data["M15"].data["digital"]);
       for (var i = 0; i < res.data["M15"].data["currencies"].length; i++) {
-        console.log(i);
+        // console.log(i);
         let data = res.data["M15"].data["currencies"][i];
         var firstSeriesDataM15 = dataSetM15.mapAs({ x: 0, value: 1 + i });
         var firstSeriesM15 = chart.line(firstSeriesDataM15);
@@ -243,7 +274,7 @@ export default function Strength() {
     if (arraycontainsM30) {
       var dataSetM30 = anychart.data.set(res.data["M30"].data["digital"]);
       for (var i = 0; i < res.data["M30"].data["currencies"].length; i++) {
-        console.log(i);
+        //  console.log(i);
         let data = res.data["M30"].data["currencies"][i];
         var firstSeriesDataM30 = dataSetM30.mapAs({ x: 0, value: 1 + i });
         var firstSeriesM30 = chart.stepLine(firstSeriesDataM30);
@@ -256,7 +287,7 @@ export default function Strength() {
     if (arraycontainsM60) {
       var dataSetM60 = anychart.data.set(res.data["M60"].data["digital"]);
       for (var i = 0; i < res.data["M60"].data["currencies"].length; i++) {
-        console.log(i);
+        //  console.log(i);
         let data = res.data["M60"].data["currencies"][i];
         var firstSeriesDataM60 = dataSetM60.mapAs({ x: 0, value: 1 + i });
         var firstSeriesM60 = chart.stepLine(firstSeriesDataM60);
@@ -324,14 +355,19 @@ export default function Strength() {
                   }}
                 >
                   <div className="currency-checkboxes">
-                    <Form.Item label="Date Time" name="date">
-                      <RangePicker
-                        showTime
+                    <Form.Item label="From" name="datefrom">
+                      <DatePicker
                         disabledDate={disabledDate}
-                        onChange={onChangeDate}
-                        style={{ width: "300px" }}
+                        onChange={onChangeDateFrom}
                       />
                     </Form.Item>
+                    <Form.Item label="To" name="dateto">
+                      <DatePicker
+                        disabledDate={disabledDate}
+                        onChange={onChangeDateTo}
+                      />
+                    </Form.Item>
+
                     <b>Currency: &nbsp;&nbsp;</b>
                     <Form.Item name="currency">
                       <Checkbox.Group options={currencyOptions} />

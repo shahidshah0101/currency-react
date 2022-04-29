@@ -91,7 +91,7 @@ a {
 
 .half-container {
   width: 100%;
-  height: 40vh;
+  height: 42vh;
 }
 .pair{
   display: flex;
@@ -183,4 +183,8 @@ border: 1px solid #ccc;
 }
 .chart-action .ico-lg{
   font-size: 20px;
+}
+.ant-picker-year-btn,.ant-picker-month-btn{
+  pointer-events: none;
+  cursor: not-allowed;
 }
